@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="LVYpvXBdLCDVWwo7hB3PVT">
+<head data-page-node-id="iSpOTT56DtDEKDwyWyiqs1">
+<meta charset="UTF-8" data-page-node-id="VolDVCvYxPMq4534FaDJ3f">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" data-page-node-id="RVg0ZSTEw7Kzn6MJJQC0Mu">
+<title>咕咕寻宝 · 原型</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;user-select:none}
+:root{
+  --sky:#5BAAE8;--sky-l:#E6F1FB;--sky-d:#0C447C;
+  --pg:#8B8680;--pg-l:#F1EFE8;--pg-d:#2C2C2A;
+  --amber:#F0A030;--amber-l:#FAEEDA;--amber-d:#633806;
+  --coral:#E8704A;--coral-l:#FAECE7;--coral-d:#712B13;
+  --teal:#1D9E75;--teal-l:#E1F5EE;--teal-d:#085041;
+  --pink:#D4537E;--pink-l:#FBEAF0;--pink-d:#72243E;
+  --purple:#7F77DD;--purple-l:#EEEDFE;--purple-d:#3C3489;
+  --bg:#FAFAF8;--card:#FFF;--border:#E8E6E0;
+  --text:#2C2C2A;--muted:#6B6B68;--light:#9B9A94;
+}
+body{background:var(--bg);display:flex;justify-content:center;align-items:center}
+#game{width:420px;max-width:100vw;height:100vh;max-height:780px;display:flex;flex-direction:column;position:relative;overflow:hidden;background:var(--bg)}
+.hidden{display:none!important}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+
+/* ===== START SCREEN ===== */
+#start-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#5BAAE8 0%,#4A90D9 50%,#3B7BC4 100%);color:#fff;text-align:center;padding:40px 20px}
+#start-screen .pigeon-big{width:100px;height:88px;margin-bottom:16px;animation:bounce 1.5s ease-in-out infinite}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+#start-screen h1{font-size:36px;font-weight:700;letter-spacing:2px;margin-bottom:8px;text-shadow:0 2px 8px rgba(0,0,0,.15)}
+#start-screen .tagline{font-size:15px;opacity:.9;margin-bottom:28px}
+#start-screen .info-box{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:12px;padding:14px 20px;margin-bottom:24px;font-size:13px;line-height:1.8;text-align:left;max-width:300px}
+#start-screen .info-box b{font-size:14px}
+.btn-start{background:#fff;color:var(--sky-d);font-size:18px;font-weight:700;padding:14px 48px;border-radius:24px;box-shadow:0 4px 16px rgba(0,0,0,.15);transition:transform .15s}
+.btn-start:active{transform:scale(.95)}
+
+/* ===== GAME SCREEN ===== */
+#game-screen{flex:1;display:flex;flex-direction:column;overflow:visible;position:relative}
+
+/* Status bar */
+#status-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--sky);color:#fff;flex-shrink:0}
+#status-bar .lvl{font-size:14px;font-weight:600}
+#status-bar .timer{font-size:13px;font-weight:500;background:rgba(255,255,255,.2);padding:2px 10px;border-radius:10px}
+#status-bar .remain{font-size:12px;opacity:.85}
+
+/* Pigeon area */
+#pigeon-area{display:flex;align-items:center;justify-content:space-between;padding:6px 16px;background:var(--pg-l);flex-shrink:0}
+#pigeon-area .pigeon-mini{width:42px;height:36px;flex-shrink:0}
+#pigeon-area .mood-text{font-size:12px;color:var(--muted);flex:1;text-align:center}
+#pigeon-area .score-box{font-size:13px;font-weight:600;color:var(--amber-d);background:var(--amber-l);padding:4px 12px;border-radius:12px;flex-shrink:0}
+
+/* Board */
+#board-wrap{flex:1;display:flex;align-items:center;justify-content:center;overflow:visible;position:relative;padding:8px;z-index:2}
+#board{position:relative;width:360px;height:300px}
+.tile{position:absolute;width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;cursor:pointer;transition:left .3s cubic-bezier(.4,0,.2,1),top .3s cubic-bezier(.4,0,.2,1),opacity .2s,transform .15s;z-index:1}
+.tile.clickable{box-shadow:0 2px 6px rgba(0,0,0,.18);filter:brightness(1)}
+.tile.clickable:hover{transform:scale(1.08);filter:brightness(1.1)}
+.tile.clickable:active{transform:scale(.95)}
+.tile.blocked{opacity:.4;cursor:default;filter:grayscale(.5)}
+.tile.in-queue{cursor:default;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.tile.matching{animation:matchPop .4s ease-out forwards}
+@keyframes matchPop{0%{transform:scale(1)}30%{transform:scale(1.3) translateY(-8px)}100%{transform:scale(0) translateY(-20px);opacity:0}}
+.tile-peek{animation:peekGlow 3s ease-in-out}
+@keyframes peekGlow{0%,100%{box-shadow:0 2px 6px rgba(0,0,0,.18)}50%{box-shadow:0 0 12px 3px rgba(91,170,232,.6)}}
+
+/* Layer shadow levels */
+.tile[data-layer="0"]{box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.tile[data-layer="1"]{box-shadow:0 2px 5px rgba(0,0,0,.15)}
+.tile[data-layer="2"]{box-shadow:0 3px 7px rgba(0,0,0,.18)}
+.tile[data-layer="3"]{box-shadow:0 4px 9px rgba(0,0,0,.2)}
+
+/* Queue bar */
+#queue-bar{display:flex;justify-content:center;gap:4px;padding:10px 16px;background:var(--card);border-top:1px solid var(--border);flex-shrink:0;position:relative;z-index:1}
+.queue-slot{width:38px;height:38px;border-radius:8px;border:1.5px dashed var(--border);background:var(--pg-l);position:relative}
+.queue-slot .tile{position:absolute;top:-1px;left:-1px;width:38px;height:38px;font-size:18px;border-radius:7px}
+
+/* Powerup bar */
+#powerup-bar{display:flex;gap:6px;padding:8px 12px;background:var(--pg-l);border-top:1px solid var(--border);flex-shrink:0;justify-content:center;position:relative;z-index:3}
+.pu-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;width:56px;height:44px;border-radius:8px;background:var(--card);border:1px solid var(--border);font-size:18px;line-height:1;gap:2px;transition:transform .1s}
+.pu-btn:active{transform:scale(.92)}
+.pu-btn .pu-label{font-size:9px;color:var(--muted)}
+.pu-btn .pu-count{font-size:10px;font-weight:700;color:var(--sky-d)}
+.pu-btn:disabled{opacity:.35;cursor:default}
+.pu-btn:disabled:active{transform:none}
+.pu-btn-restart{background:var(--coral-l);border-color:var(--coral);width:48px}
+
+/* Combo indicator */
+#combo-ind{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:24px;font-weight:700;color:var(--amber);text-shadow:0 2px 8px rgba(240,160,48,.4);pointer-events:none;opacity:0;transition:opacity .2s;z-index:100}
+#combo-ind.show{animation:comboShow .8s ease-out}
+@keyframes comboShow{0%{opacity:0;transform:translate(-50%,-50%) scale(.5)}30%{opacity:1;transform:translate(-50%,-50%) scale(1.2)}100%{opacity:0;transform:translate(-50%,-80%) scale(1)}}
+
+/* Particles */
+.particle{position:absolute;width:6px;height:6px;border-radius:50%;pointer-events:none;z-index:50}
+
+/* Score popup */
+.score-pop{position:absolute;font-size:14px;font-weight:700;color:var(--teal-d);pointer-events:none;z-index:60;animation:scoreFloat 1s ease-out forwards}
+@keyframes scoreFloat{0%{opacity:0;transform:translateY(0)}20%{opacity:1}100%{opacity:0;transform:translateY(-30px)}}
+
+/* ===== MODALS ===== */
+.modal{position:absolute;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(2px)}
+.modal-card{background:#fff;border-radius:16px;padding:32px 28px;width:300px;text-align:center;animation:modalIn .3s ease-out}
+@keyframes modalIn{0%{opacity:0;transform:scale(.9)}100%{opacity:1;transform:scale(1)}}
+.modal-card .modal-icon{font-size:48px;margin-bottom:8px}
+.modal-card h2{font-size:22px;font-weight:700;margin-bottom:8px}
+.modal-card .modal-sub{font-size:14px;color:var(--muted);margin-bottom:16px}
+.modal-card .stats{display:flex;justify-content:space-around;margin-bottom:20px}
+.modal-card .stat-item{text-align:center}
+.modal-card .stat-item .stat-v{font-size:20px;font-weight:700;color:var(--sky-d)}
+.modal-card .stat-item .stat-l{font-size:11px;color:var(--muted)}
+.modal-card .btn-row{display:flex;gap:10px;justify-content:center}
+.modal-card .btn{padding:10px 24px;border-radius:20px;font-size:15px;font-weight:600;transition:transform .1s}
+.modal-card .btn:active{transform:scale(.95)}
+.btn-primary{background:var(--sky);color:#fff}
+.btn-secondary{background:var(--pg-l);color:var(--text);border:1px solid var(--border)}
+
+/* Wind effect */
+#wind-fx{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:30}
+.leaf{position:absolute;font-size:14px;opacity:.6;animation:windBlow 3s linear forwards}
+@keyframes windBlow{0%{transform:translateX(-20px) translateY(0) rotate(0)}100%{transform:translateX(400px) translateY(60px) rotate(360deg)}}
+
+/* Cat (大橘) */
+#cat-overlay{position:absolute;z-index:80;pointer-events:none;transition:left .4s ease,top .4s ease,opacity .3s}
+#cat-overlay.cat-in{animation:catJump .4s ease-out}
+@keyframes catJump{0%{transform:translateX(-60px) scale(.5);opacity:0}60%{transform:translateX(0) scale(1.1);opacity:1}100%{transform:translateX(0) scale(1);opacity:1}}
+#cat-overlay.cat-out{animation:catRun .4s ease-in forwards}
+@keyframes catRun{0%{transform:scale(1);opacity:1}100%{transform:translateX(80px) scale(.5);opacity:0}}
+.cat-paw{position:absolute;width:40px;height:40px;border-radius:50%;background:rgba(232,112,74,.35);border:2px solid #E8704A;display:flex;align-items:center;justify-content:center;font-size:18px;pointer-events:none;z-index:75;animation:pawPress .3s ease-out}
+@keyframes pawPress{0%{transform:scale(2);opacity:0}50%{transform:scale(1.2);opacity:.6}100%{transform:scale(1);opacity:.5}}
+#cat-warn{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#E8704A;color:#fff;font-size:12px;font-weight:600;padding:4px 14px;border-radius:12px;z-index:90;animation:warnPulse .5s ease-in-out infinite alternate;white-space:nowrap}
+@keyframes warnPulse{0%{opacity:.7;transform:translateX(-50%) scale(1)}100%{opacity:1;transform:translateX(-50%) scale(1.05)}}
+
+/* Nest screen */
+#nest-screen{flex:1;display:flex;flex-direction:column;overflow-y:auto;background:linear-gradient(180deg,#F1EFE8 0%,#FAFAF8 100%)}
+#nest-screen .nest-header{display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:#8B8680;color:#fff}
+#nest-screen .nest-header h2{font-size:18px;font-weight:700}
+#nest-screen .nest-header .nest-score{font-size:14px;font-weight:600;color:#FAEEDA}
+#nest-screen .nest-intro{padding:16px;text-align:center;font-size:13px;color:var(--muted)}
+#nest-screen .nest-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px 16px}
+.nest-item{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid var(--border);background:#fff;font-size:28px;gap:4px}
+.nest-item.locked{background:var(--pg-l);opacity:.4;font-size:20px}
+.nest-item .nest-item-name{font-size:9px;color:var(--muted)}
+.nest-item .nest-item-count{font-size:10px;font-weight:700;color:var(--amber-d)}
+#nest-screen .nest-actions{padding:16px;display:flex;gap:10px;justify-content:center}
+
+/* Tutorial hint */
+#tutorial-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(91,170,232,.9);color:#fff;font-size:12px;padding:6px 16px;border-radius:16px;z-index:70;animation:hintBob 1.5s ease-in-out infinite;pointer-events:none;max-width:280px;text-align:center}
+@keyframes hintBob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-4px)}}
+</style>
+</head>
+<body data-page-node-id="PGm0w69CnrEOzC5BktcXR4">
+<div id="game" data-page-node-id="eCbfMMxQ5mDnxG8l7VqcKd">
+
+<!-- START SCREEN -->
+<div id="start-screen" data-page-node-id="8BFXkoHDcJAdzitcyzTwMx">
+  <svg class="pigeon-big" viewBox="0 0 100 88" data-page-node-id="aaAGc2WhVUcsLvVZClyTrC">
+    <ellipse cx="50" cy="55" rx="32" ry="26" fill="#8B8680" data-page-node-id="jZ57DTHN74EsqVF7smU8sK"/>
+    <ellipse cx="24" cy="58" rx="9" ry="18" fill="#7B7670" transform="rotate(-12 24 58)" data-page-node-id="uMl4PbNCBXgA6i71fJnCAB"/>
+    <ellipse cx="76" cy="58" rx="9" ry="18" fill="#7B7670" transform="rotate(12 76 58)" data-page-node-id="S9qIELrPpMPgqbtd1okGKW"/>
+    <circle cx="50" cy="28" r="18" fill="#9B9690" data-page-node-id="nhNcdEavT5sjm12aoNN8U6"/>
+    <circle cx="41" cy="25" r="3.5" fill="#2C2C2A" data-page-node-id="PqRY5n8V3GmvB6a6KQXhb6"/>
+    <circle cx="59" cy="25" r="3.5" fill="#2C2C2A" data-page-node-id="85Gy9UrLN0oItzTn4Fqpgr"/>
+    <circle cx="42" cy="24" r="1" fill="#fff" data-page-node-id="6fbmoKvItZxWsEU4Rv99za"/>
+    <circle cx="60" cy="24" r="1" fill="#fff" data-page-node-id="HUwS3tekonGAbayK73eDkP"/>
+    <path d="M44 32 L56 32 L50 39 Z" fill="#E8704A" data-page-node-id="jBzAzWNHht8sJti55ELvYB"/>
+    <rect x="34" y="42" width="32" height="6" rx="3" fill="#E8704A" data-page-node-id="GZsntj4s7Yah5RLHFLia75"/>
+    <rect x="44" y="47" width="10" height="8" rx="2" fill="#E8704A" data-page-node-id="rheRsvn94WfQRzawfZ3uJL"/>
+    <path d="M48 18 Q50 14 52 18" fill="none" stroke="#7B7670" stroke-width="2" data-page-node-id="gapI65HXAElmRiILvGYTep"/>
+  </svg>
+  <h1 data-page-node-id="YXw0Pl29eh1P2L0M0HmTFM">咕咕寻宝</h1>
+  <p class="tagline" data-page-node-id="kW4jE28sKzzYUzNhhwU63t">城市鸽子收集宝物的三消解压游戏</p>
+  <div class="info-box" data-page-node-id="VfaOl7p03Lh6b6HFvxPbC6">
+    <b data-page-node-id="t5VMVxZbGMgmME3JPUjxhe">玩法</b><br data-page-node-id="Fa47u8ajlaCw1MP1V0fUlB">
+    1. 点击叠放的宝物送入底部队列<br data-page-node-id="ntaGBMLm2wDltyoi32VVMC">
+    2. 集齐 3 个相同宝物自动消除<br data-page-node-id="a4oiV1d1SteUO5hGsmTU4D">
+    3. 清空所有宝物即过关<br data-page-node-id="X7qcsRSYW0ZYM2e7FucCh4">
+    4. 队列满 7 格且无法消除则失败
+  </div>
+  <button class="btn-start" id="btn-start" data-page-node-id="QhCuvgFzb4zdF2bVGy6LUq">开始寻宝</button>
+  <button class="btn-start hidden" id="btn-continue" style="margin-top:10px;background:linear-gradient(135deg,#F0A030,#E8704A);color:#fff;box-shadow:0 4px 16px rgba(240,160,48,.4);font-size:16px;padding:12px 36px">▶ 继续游戏</button>
+  <button class="btn-nest" id="btn-view-nest" style="margin-top:12px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:14px;padding:8px 24px;border-radius:20px" data-page-node-id="SKEOWDeUNFLAEJaNAb0GDb">查看咕咕巢穴</button>
+  <div id="save-hint" class="hidden" style="margin-top:10px;font-size:12px;opacity:.85">已自动保存进度 ✓</div>
+  <button class="btn-link" id="btn-reset" style="margin-top:14px;background:none;border:none;color:#fff;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:12px;opacity:.75;padding:6px 12px">重新开始（清除存档）</button>
+</div>
+
+<!-- NEST SCREEN -->
+<div id="nest-screen" class="hidden" data-page-node-id="R8v4Ok434LgOaaId3rBJt3">
+  <div class="nest-header" data-page-node-id="M52d8IaHTWEUeXlSV7VubA">
+    <h2 data-page-node-id="6Zw4YIeBleD0WuRNVY6tWb">咕咕的巢穴</h2>
+    <span class="nest-score" id="nest-total-score" data-page-node-id="pXlSdUhVqo8Zcf6BwS9l1S">总分 0</span>
+  </div>
+  <div class="nest-intro" data-page-node-id="RfAsBCrxVDNxc7BVL8ie2M">咕咕在城市各处收集到的宝贝都存放在这里</div>
+  <div class="nest-grid" id="nest-grid" data-page-node-id="BfdsQx8uWGlowIiR5NCFLL"></div>
+  <div class="nest-actions" data-page-node-id="qg2KHr96in7hFVaVbiu40D">
+    <button class="btn btn-secondary" id="btn-nest-back" data-page-node-id="JVmqMEefX5IFTXqEiBBMHK">返回首页</button>
+  </div>
+</div>
+
+<!-- GAME SCREEN -->
+<div id="game-screen" class="hidden" data-page-node-id="m7V3QCnUarHw6uyaPtaZN5">
+  <div id="status-bar" data-page-node-id="dAWuGOBpSLSMPOxDnmBoNu">
+    <span class="lvl" id="lvl-text" data-page-node-id="2k2XBNkSUsNLOYeDlO24cA">第 1 关 · 中央公园</span>
+    <span class="timer" id="timer-text" data-page-node-id="iC2RMkG2cxz5W7oqVY29vh">00:00</span>
+    <span class="remain" id="remain-text" data-page-node-id="uugCNcLPce1l39bnNHeWV1">剩余 18</span>
+  </div>
+  <div id="pigeon-area" data-page-node-id="BOl0k6r99rjGsCtnfv5iXZ">
+    <svg class="pigeon-mini" id="pigeon-svg" viewBox="0 0 80 70" data-page-node-id="EohjrK2TaFUPl1RLYYctQi">
+      <ellipse cx="40" cy="42" rx="25" ry="20" fill="#8B8680" data-page-node-id="OnBbmZHLgNJIRiT6slx2GZ"/>
+      <ellipse cx="20" cy="45" rx="7" ry="14" fill="#7B7670" transform="rotate(-10 20 45)" data-page-node-id="acFN1fPfukWLPaKPuxbqZe"/>
+      <ellipse cx="60" cy="45" rx="7" ry="14" fill="#7B7670" transform="rotate(10 60 45)" data-page-node-id="MqfWItzaK9QPjts3ftdV6g"/>
+      <circle cx="40" cy="22" r="15" fill="#9B9690" data-page-node-id="89C7ttBgtRRdQdZr2mYpxv"/>
+      <circle id="eye-l" cx="33" cy="20" r="2.5" fill="#2C2C2A" data-page-node-id="hBuMRiAgi2ERDA8tyz9JuC"/>
+      <circle id="eye-r" cx="47" cy="20" r="2.5" fill="#2C2C2A" data-page-node-id="dSGE2BECwVrLgESD9xzQMn"/>
+      <path id="beak" d="M36 25 L44 25 L40 30 Z" fill="#E8704A" data-page-node-id="VjwBPXGz6GSe61g0r6heuw"/>
+      <rect x="28" y="32" width="24" height="5" rx="2.5" fill="#E8704A" data-page-node-id="6fxHE9URhWdWh8LYRpmZSM"/>
+      <rect x="36" y="36" width="8" height="6" rx="2" fill="#E8704A" data-page-node-id="odCHYCRdJHiTB17fHtifes"/>
+    </svg>
+    <span class="mood-text" id="mood-text" data-page-node-id="yEYrxzpKDUBHwS7uOqA1i4">咕咕准备好寻宝了！</span>
+    <span class="score-box" id="score-text" data-page-node-id="4pVsogoYxbq4fK4umQE8Az">0</span>
+  </div>
+  <div id="board-wrap" data-page-node-id="eUlbpWEGXdhX49EWy5jZLo">
+    <div id="board" data-page-node-id="QaCeXcJIhBvOZOeXTcMIwB"></div>
+    <div id="combo-ind" data-page-node-id="9ARvbvWi8iym9AZPfIRfk0"></div>
+    <div id="wind-fx" data-page-node-id="7Bkbnrz9h2AYNJDGCA7rzs"></div>
+    <div id="cat-warn" class="hidden" data-page-node-id="5fGe5qDh8nUDaXpKK2UYRF">⚠️ 大橘来捣乱了！消除赶走它！</div>
+    <div id="tutorial-hint" class="hidden" data-page-node-id="d4u7WtuCALPMwDGpFL88kL"></div>
+  </div>
+  <div id="queue-bar" data-page-node-id="iQ4OngXPmecqfcomLfycKe"></div>
+  <div id="powerup-bar" data-page-node-id="R85vLJMW5ekzBIRGYxekAi">
+    <button class="pu-btn" id="btn-undo" data-page-node-id="B3HxMZhCi4W2Q0MSNiZ4H7">
+      <span data-page-node-id="3RkZAviW4v2IaBBC9t3ocb">↩</span><span class="pu-label" data-page-node-id="V9NdVfBcgHS1azNuqvkJEO">撤回</span><span class="pu-count" id="cnt-undo" data-page-node-id="J3OhWMRCNJ0ZfiJSwb0Jpt">3</span>
+    </button>
+    <button class="pu-btn" id="btn-shuffle" data-page-node-id="o3EnbEHQdGEzzAlCJG3A8A">
+      <span data-page-node-id="AlWTKIrswbNL4egDyKF63I">🔄</span><span class="pu-label" data-page-node-id="rUQ6H6SNl1By6jdA1nrOEJ">洗牌</span><span class="pu-count" id="cnt-shuffle" data-page-node-id="yU7BZOVoKrlpZ5e4dnDjtX">1</span>
+    </button>
+    <button class="pu-btn" id="btn-peek" data-page-node-id="6dIkYPnq6OuOHuNUAQtaEj">
+      <span data-page-node-id="myEeTysBJAlkuVkbFyNl0S">👁</span><span class="pu-label" data-page-node-id="aZF1JCvPxZ6TPMZtSYDE5R">透视</span><span class="pu-count" id="cnt-peek" data-page-node-id="BFzDQPlyLOoAW11CM4bFq8">1</span>
+    </button>
+    <button class="pu-btn pu-btn-restart" id="btn-restart" data-page-node-id="FzWCOgL57ioqiFjeubLB2p">
+      <span data-page-node-id="nBmcU0ZRqzrFhrCX0WkWG3">🔄</span><span class="pu-label" data-page-node-id="2YnbU64XLbNEpf4D1XjR8x">重来</span>
+    </button>
+  </div>
+</div>
+
+<!-- WIN MODAL -->
+<div id="win-modal" class="modal hidden" data-page-node-id="Mcj7c849wbyX623igNkO04">
+  <div class="modal-card" data-page-node-id="T8Gp2Bsa1Tb8Qf0WD7MnbV">
+    <div class="modal-icon" data-page-node-id="XOmdBF7r0IMDBLzmuyuLMo">🎉</div>
+    <h2 data-page-node-id="ftOc4PSpm4wlWj12HYjHwd">过关！</h2>
+    <p class="modal-sub" id="win-sub" data-page-node-id="inweuBkOPIuuF5apVz5nTH">咕咕的巢穴又多了一些宝贝</p>
+    <div class="stats" data-page-node-id="40Kz4HBRHdkyJgOTcEQCNb">
+      <div class="stat-item" data-page-node-id="2J0ByZ7R3R23E3mrmg1SJI"><div class="stat-v" id="win-score" data-page-node-id="L45qyXj9T7GzHfE8LkZu9o">0</div><div class="stat-l" data-page-node-id="o3ZcOXy8v3EehNm43nDgjV">得分</div></div>
+      <div class="stat-item" data-page-node-id="0EByrXqCDS860HQgKioScu"><div class="stat-v" id="win-time" data-page-node-id="xL7F0H65D7iZuFBsTGZiZW">0s</div><div class="stat-l" data-page-node-id="CSaaaL3hjM2HlIXB7AO47K">用时</div></div>
+      <div class="stat-item" data-page-node-id="AMA5Vo9oltzstQ2aT2Uy3A"><div class="stat-v" id="win-combo" data-page-node-id="KCHhoeg33G426pXbyfMI6Z">0</div><div class="stat-l" data-page-node-id="yLcrKoUuNcYcMvN75icCz0">最高连消</div></div>
+    </div>
+    <div class="btn-row" data-page-node-id="w6U3LOC6gp5ZPznCWyNH6U">
+      <button class="btn btn-secondary" id="btn-home" data-page-node-id="KF1X9YXYoLXC56MtBiRM4A">回首页</button>
+      <button class="btn btn-secondary" id="btn-win-nest" data-page-node-id="c7RHuH9m1chH2TxICYhWSI">看巢穴</button>
+      <button class="btn btn-primary" id="btn-next" data-page-node-id="FFvlqHpMunlAoM12qlo3IW">下一关</button>
+    </div>
+  </div>
+</div>
+
+<!-- LOSE MODAL -->
+<div id="lose-modal" class="modal hidden" data-page-node-id="5FObdQq0HcxMzOzXHYABWI">
+  <div class="modal-card" data-page-node-id="WZdJ5WkYfd2YzyFnGBecZ2">
+    <div class="modal-icon" data-page-node-id="6zNNsOCNRonA9CL0xhW7rC">😢</div>
+    <h2 data-page-node-id="Obsh9aZksW2Fnml8Bkgzay">差一点点！</h2>
+    <p class="modal-sub" data-page-node-id="kACeJVUxs05rZ54KfEohfi">队列满了，咕咕还有办法的</p>
+    <div class="btn-row" data-page-node-id="FnSUERlhVPbG0DG5Sb7hAU">
+      <button class="btn btn-secondary" id="btn-lose-home" data-page-node-id="MMoPHHYwnwgkP3HG36wjVN">回首页</button>
+      <button class="btn btn-primary" id="btn-retry" data-page-node-id="WfgahlH89H0oE1fCH1mOZi">再来一次</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLEAR MODAL -->
+<div id="clear-modal" class="modal hidden" data-page-node-id="z9HkDAqX5N7iMTuwsGlCVn">
+  <div class="modal-card" data-page-node-id="kovarRliwgM75cQ3VlOH2W">
+    <div class="modal-icon" data-page-node-id="MBTK82ZMSbfkgv3fdLASeB">🏆</div>
+    <h2 data-page-node-id="9ARhhORBw4yVRqIQAxsRqO">全部通关！</h2>
+    <p class="modal-sub" data-page-node-id="OoUqErS8gPhRO4oHuxPXjh">咕咕的巢穴已经是全城最漂亮的了！</p>
+    <div class="stats" data-page-node-id="Si8pvUsBW9eTC4OAywFuto">
+      <div class="stat-item" data-page-node-id="cy0PNTFsXWTS03cCwEYa75"><div class="stat-v" id="clear-score" data-page-node-id="I7GXp0lfGXGcXi4mDUoLj8">0</div><div class="stat-l" data-page-node-id="epdvzrS2pLL9qrtp1HIFgi">总分</div></div>
+    </div>
+    <div class="btn-row" data-page-node-id="gjauPlXp1E1OX01lJxlF6g">
+      <button class="btn btn-primary" id="btn-replay" data-page-node-id="Ib8u4xq9nVc9udQ5EyPrzV">再玩一次</button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+// ==================== CONFIG ====================
+const TILE_TYPES=[
+  {e:'🪙',bg:'#FAEEDA',bd:'#FAC775',tx:'#633806'},
+  {e:'🔴',bg:'#E6F1FB',bd:'#B5D4F4',tx:'#0C447C'},
+  {e:'🪶',bg:'#E1F5EE',bd:'#9FE1CB',tx:'#085041'},
+  {e:'🍬',bg:'#FBEAF0',bd:'#F4C0D1',tx:'#72243E'},
+  {e:'🌰',bg:'#FAECE7',bd:'#F5C4B3',tx:'#712B13'},
+  {e:'🎲',bg:'#EEEDFE',bd:'#CECBF6',tx:'#3C3489'},
+  {e:'🔑',bg:'#FAEEDA',bd:'#FAC775',tx:'#633806'},
+  {e:'💎',bg:'#E6F1FB',bd:'#B5D4F4',tx:'#0C447C'},
+  {e:'🌿',bg:'#E1F5EE',bd:'#9FE1CB',tx:'#085041'},
+  {e:'🧿',bg:'#FBEAF0',bd:'#F4C0D1',tx:'#72243E'},
+];
+const TS=40,TG=3,UNIT=TS+TG;
+const QSIZE=7;
+const LEVELS=[
+  {name:'中央公园',emoji:'🌳',layers:[{c:4,r:3,ox:0,oy:0},{c:3,r:2,ox:.5,oy:.5}],types:6,wind:false,cat:false},
+  {name:'屋顶天台',emoji:'🏙️',layers:[{c:5,r:3,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5},{c:3,r:1,ox:1,oy:1}],types:10,wind:true,cat:true},
+  {name:'地铁站台',emoji:'🚇',layers:[{c:5,r:4,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5},{c:3,r:3,ox:1,oy:1}],types:10,wind:true,cat:true},
+  {name:'樱花广场',emoji:'🌸',layers:[{c:5,r:4,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5},{c:3,r:2,ox:1,oy:1},{c:2,r:1,ox:1.5,oy:1.5}],types:10,wind:true,cat:true},
+  {name:'海边码头',emoji:'🏖️',layers:[{c:6,r:4,ox:0,oy:0},{c:5,r:3,ox:.5,oy:.5},{c:4,r:2,ox:1,oy:1},{c:3,r:1,ox:1.5,oy:1.5}],types:10,wind:true,cat:true},
+];
+
+// ==================== STATE ====================
+let S={
+  level:0,tiles:[],queue:[],score:0,combo:0,maxCombo:0,totalScore:0,
+  pu:{undo:3,shuffle:1,peek:1},status:'idle',history:[],
+  startT:0,timerInt:null,mood:'happy',remaining:0,transitioning:false,
+  boardOffsetX:0,boardOffsetY:0,
+  cat:{active:false,coveredTiles:[],catEl:null,warnEl:null,scareCount:0},
+  nest:{items:[]},
+};
+
+// ==================== SAVE/LOAD (localStorage) ====================
+const SAVE_KEY='gugu_treasure_save_v1';
+function saveProgress(){
+  try{
+    const data={level:S.level,totalScore:S.totalScore,nestItems:S.nest.items,updatedAt:Date.now()};
+    localStorage.setItem(SAVE_KEY,JSON.stringify(data));
+    flashSaveHint();
+  }catch(e){console.warn('保存失败:',e)}
+}
+function loadProgress(){
+  try{
+    const raw=localStorage.getItem(SAVE_KEY);
+    if(!raw)return null;
+    const data=JSON.parse(raw);
+    if(typeof data.level!=='number'||typeof data.totalScore!=='number'||!Array.isArray(data.nestItems))return null;
+    return data;
+  }catch(e){return null}
+}
+function clearProgress(){
+  try{localStorage.removeItem(SAVE_KEY)}catch(e){}
+}
+function hasProgress(){
+  const d=loadProgress();
+  return d && d.level>0;
+}
+function refreshStartUI(){
+  const save=loadProgress();
+  const btn=$('btn-start');
+  const contBtn=$('btn-continue');
+  const resetBtn=$('btn-reset');
+  if(save&&save.level>0){
+    const nextIdx=Math.min(save.level,LEVELS.length-1);
+    const nextName=LEVELS[nextIdx].name;
+    contBtn.textContent=`▶ 继续 · 第 ${save.level+1} 关 ${nextName} · 总分 ${save.totalScore}`;
+    contBtn.classList.remove('hidden');
+    btn.textContent='从头开始';
+    if(resetBtn)resetBtn.classList.remove('hidden');
+  }else{
+    contBtn.classList.add('hidden');
+    btn.textContent='开始寻宝';
+    if(resetBtn)resetBtn.classList.add('hidden');
+  }
+}
+let _saveHintTimer=null;
+function flashSaveHint(){
+  const h=$('save-hint');
+  if(!h)return;
+  h.classList.remove('hidden');
+  if(_saveHintTimer)clearTimeout(_saveHintTimer);
+  _saveHintTimer=setTimeout(()=>h.classList.add('hidden'),1500);
+}
+
+// ==================== DOM ====================
+const $=id=>document.getElementById(id);
+const board=$('board');
+const queueBar=$('queue-bar');
+const startScreen=$('start-screen');
+const gameScreen=$('game-screen');
+
+// ==================== AUDIO ====================
+let actx=null;
+function snd(type){
+  if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){return}}
+  const t=actx.currentTime;
+  const note=(f,d,ty='sine',v=.12,delay=0)=>{
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.connect(g);g.connect(actx.destination);
+    o.frequency.value=f;o.type=ty;
+    g.gain.setValueAtTime(v,t+delay);
+    g.gain.exponentialRampToValueAtTime(.001,t+delay+d);
+    o.start(t+delay);o.stop(t+delay+d);
+  };
+  switch(type){
+    case'pick':note(880,.08,'sine',.1);break;
+    case'match':[523,659,784].forEach((f,i)=>note(f,.15,'sine',.14,i*.06));break;
+    case'win':[523,659,784,1047].forEach((f,i)=>note(f,.3,'triangle',.18,i*.1));break;
+    case'lose':[400,330,260,200].forEach((f,i)=>note(f,.2,'sawtooth',.12,i*.12));break;
+    case'click':note(600,.04,'square',.06);break;
+    case'shuffle':note(700,.1,'triangle',.08);setTimeout(()=>note(500,.1,'triangle',.08),100);break;
+    case'peek':[800,1000].forEach((f,i)=>note(f,.12,'sine',.1,i*.05));break;
+    case'cat':note(300,.15,'sawtooth',.1);setTimeout(()=>note(250,.15,'sawtooth',.1),120);break;
+    case'scare':[600,800,1000].forEach((f,i)=>note(f,.1,'triangle',.12,i*.05));break;
+    case'nest':[523,659,784,1047,1319].forEach((f,i)=>note(f,.2,'sine',.12,i*.08));break;
+  }
+}
+
+// ==================== LEVEL GENERATION ====================
+function genLayout(cfg){
+  let pos=[];
+  cfg.layers.forEach((lyr,li)=>{
+    for(let r=0;r<lyr.r;r++){
+      for(let c=0;c<lyr.c;c++){
+        pos.push({gx:c+lyr.ox,gy:r+lyr.oy,layer:li});
+      }
+    }
+  });
+  while(pos.length%3!==0)pos.pop();
+  // shuffle positions
+  for(let i=pos.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pos[i],pos[j]]=[pos[j],pos[i]]}
+  return pos;
+}
+
+function genTypes(count,numTypes){
+  const groups=Math.floor(count/3);
+  const arr=[];
+  for(let i=0;i<groups;i++){const t=i%numTypes;arr.push(t,t,t)}
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
+  return arr;
+}
+
+function loadLevel(idx){
+  const cfg=LEVELS[Math.min(idx,LEVELS.length-1)];
+  const positions=genLayout(cfg);
+  const types=genTypes(positions.length,cfg.types);
+  S.tiles=positions.map((p,i)=>({
+    id:i,type:types[i],gx:p.gx,gy:p.gy,layer:p.layer,
+    state:'board',queueIdx:-1,el:null
+  }));
+  // calc bounding box for centering
+  let minPx=Infinity,maxPx=-Infinity,minPy=Infinity,maxPy=-Infinity;
+  S.tiles.forEach(t=>{
+    const px=t.gx*UNIT,py=t.gy*UNIT;
+    minPx=Math.min(minPx,px);maxPx=Math.max(maxPx,px+TS);
+    minPy=Math.min(minPy,py);maxPy=Math.max(maxPy,py+TS);
+  });
+  const bw=board.clientWidth||360,bh=board.clientHeight||300;
+  S.boardOffsetX=(bw-(maxPx-minPx))/2-minPx;
+  S.boardOffsetY=(bh-(maxPy-minPy))/2-minPy;
+  S.tiles.forEach(t=>{
+    t.px=t.gx*UNIT+S.boardOffsetX;
+    t.py=t.gy*UNIT+S.boardOffsetY;
+  });
+  S.queue=[];S.score=0;S.combo=0;S.maxCombo=0;
+  S.pu={undo:3,shuffle:1,peek:1};S.history=[];S.remaining=S.tiles.length;
+  S.status='playing';S.transitioning=false;
+  S.cat={active:false,coveredTiles:[],catEl:null,warnEl:null,scareCount:0};
+  $('lvl-text').textContent=`第 ${idx+1} 关 · ${cfg.name}`;
+  $('cat-warn').classList.add('hidden');
+  hideHint();
+  renderBoard();renderQueue();renderUI();updateMood('happy');
+  if(cfg.wind)startWind();
+  startTimer();
+  // tutorial on level 1
+  if(idx===0){
+    setTimeout(()=>showHint('点击亮色的宝物送入队列，集齐3个相同宝物消除！'),500);
+    setTimeout(()=>hideHint(),5000);
+  }
+}
+
+// ==================== RENDERING ====================
+function renderBoard(){
+  board.innerHTML='';
+  S.tiles.forEach(t=>{
+    if(t.state==='cleared')return;
+    const el=document.createElement('div');
+    el.className='tile';
+    el.dataset.layer=t.layer;
+    el.style.left=t.px+'px';
+    el.style.top=t.py+'px';
+    const ty=TILE_TYPES[t.type];
+    el.style.background=ty.bg;
+    el.style.border='1.5px solid '+ty.bd;
+    el.style.color=ty.tx;
+    el.textContent=ty.e;
+    el.style.zIndex=t.layer+1;
+    el.addEventListener('click',()=>onTileClick(t));
+    t.el=el;
+    board.appendChild(el);
+  });
+  updateClickable();
+}
+
+function renderQueue(){
+  queueBar.innerHTML='';
+  for(let i=0;i<QSIZE;i++){
+    const slot=document.createElement('div');
+    slot.className='queue-slot';
+    queueBar.appendChild(slot);
+  }
+}
+function updateQueuePositions(){
+  S.queue.forEach((t,i)=>{
+    t.queueIdx=i;
+    if(!t.el)return;
+    const slot=queueBar.children[i];
+    if(slot){
+      const sr=slot.getBoundingClientRect();
+      t.el.style.position='fixed';
+      t.el.style.left=sr.left+'px';
+      t.el.style.top=sr.top+'px';
+      t.el.style.width='38px';
+      t.el.style.height='38px';
+      t.el.style.fontSize='18px';
+      t.el.style.zIndex=9999;
+    }
+    t.el.classList.remove('clickable','blocked');
+    t.el.classList.add('in-queue');
+  });
+}
+
+function renderUI(){
+  $('remain-text').textContent='剩余 '+S.remaining;
+  $('score-text').textContent=S.score;
+  $('cnt-undo').textContent=S.pu.undo;
+  $('cnt-shuffle').textContent=S.pu.shuffle;
+  $('cnt-peek').textContent=S.pu.peek;
+  $('btn-undo').disabled=S.pu.undo<=0||S.history.length===0||S.transitioning;
+  $('btn-shuffle').disabled=S.pu.shuffle<=0||S.queue.length===0||S.transitioning;
+  $('btn-peek').disabled=S.pu.peek<=0||S.transitioning;
+}
+
+function updateClickable(){
+  S.tiles.forEach(t=>{
+    if(t.state!=='board'||!t.el)return;
+    const clickable=isClickable(t);
+    t.el.classList.toggle('clickable',clickable);
+    t.el.classList.toggle('blocked',!clickable);
+  });
+}
+
+function isClickable(tile){
+  if(tile._paw)return false;
+  for(const o of S.tiles){
+    if(o===tile||o.state!=='board')continue;
+    if(o.layer<=tile.layer)continue;
+    const dx=Math.abs(tile.px-o.px),dy=Math.abs(tile.py-o.py);
+    if(dx<TS*.85&&dy<TS*.85)return false;
+  }
+  return true;
+}
+
+// ==================== PIGEON MOOD ====================
+const MOODS={
+  happy:{eyes:'normal',beak:'normal',text:'咕咕准备好寻宝了！'},
+  nervous:{eyes:'small',beak:'flat',text:'队列快满了，小心点…'},
+  panic:{eyes:'tiny',beak:'open',text:'要满了要满了！'},
+  excited:{eyes:'wide',beak:'open',text:'太棒了！连消！'},
+  sad:{eyes:'closed',beak:'frown',text:'呜呜，差一点点…'},
+  win:{eyes:'star',beak:'big',text:'赢啦！咕咕最棒！'},
+};
+function updateMood(mood){
+  S.mood=mood;
+  const m=MOODS[mood]||MOODS.happy;
+  $('mood-text').textContent=m.text;
+  const el=$('eye-l'),er=$('eye-r'),bk=$('beak');
+  // reset
+  el.setAttribute('r','2.5');er.setAttribute('r','2.5');
+  el.setAttribute('fill','#2C2C2A');er.setAttribute('fill','#2C2C2A');
+  bk.setAttribute('d','M36 25 L44 25 L40 30 Z');
+  switch(m.eyes){
+    case'small':el.setAttribute('r','1.8');er.setAttribute('r','1.8');break;
+    case'tiny':el.setAttribute('r','1.2');er.setAttribute('r','1.2');break;
+    case'wide':el.setAttribute('r','3.2');er.setAttribute('r','3.2');break;
+    case'closed':
+      el.setAttribute('r','0.5');er.setAttribute('r','0.5');
+      el.setAttribute('fill','#E8704A');er.setAttribute('fill','#E8704A');break;
+    case'star':
+      el.setAttribute('fill','#F0A030');er.setAttribute('fill','#F0A030');
+      el.setAttribute('r','3');er.setAttribute('r','3');break;
+  }
+  switch(m.beak){
+    case'flat':bk.setAttribute('d','M35 27 L45 27 L40 30 Z');break;
+    case'open':bk.setAttribute('d','M36 24 L44 24 L44 32 L36 32 Z');break;
+    case'frown':bk.setAttribute('d','M36 30 L44 30 L40 25 Z');break;
+    case'big':bk.setAttribute('d','M34 23 L46 23 L40 33 Z');break;
+  }
+}
+
+// ==================== GAME LOGIC ====================
+function onTileClick(tile){
+  if(S.status!=='playing'||S.transitioning)return;
+  if(tile.state!=='board'||!isClickable(tile))return;
+  S.transitioning=true;
+  snd('pick');
+  S.history.push({tileId:tile.id});
+  tile.state='queue';
+  tile.queueIdx=S.queue.length;
+  S.queue.push(tile);
+  S.remaining--;
+  // Use position:fixed — tile stays in #board DOM but is positioned via viewport coords
+  // This bypasses all container overflow/stacking issues
+  if(tile.el){
+    const slot=queueBar.children[tile.queueIdx];
+    if(slot){
+      // Record tile's current viewport position
+      const tr=tile.el.getBoundingClientRect();
+      const sr=slot.getBoundingClientRect();
+      // Disable transition, switch to fixed, place at current viewport pos (no jump)
+      tile.el.style.transition='none';
+      tile.el.style.position='fixed';
+      tile.el.style.left=tr.left+'px';
+      tile.el.style.top=tr.top+'px';
+      tile.el.style.width='38px';
+      tile.el.style.height='38px';
+      tile.el.style.fontSize='18px';
+      tile.el.style.zIndex=9999;
+      tile.el.classList.remove('clickable','blocked');
+      tile.el.classList.add('in-queue');
+      // Force reflow so browser registers current position
+      void tile.el.offsetWidth;
+      // Restore transition and animate to slot position
+      tile.el.style.transition='';
+      tile.el.style.left=sr.left+'px';
+      tile.el.style.top=sr.top+'px';
+    }
+  }
+  setTimeout(()=>{
+    S.transitioning=false;
+    const match=checkMatch();
+    if(match){handleMatch(match)}
+    else{S.combo=0;checkMood();updateClickable();renderUI();
+      if(!S.cat.active)maybeSpawnCat();checkLose()}
+  },350);
+}
+
+function checkMatch(){
+  const counts={};
+  S.queue.forEach(t=>{counts[t.type]=(counts[t.type]||0)+1});
+  for(const type in counts){
+    if(counts[type]>=3){
+      const matched=S.queue.filter(t=>t.type==type).slice(0,3);
+      return matched;
+    }
+  }
+  return null;
+}
+
+function handleMatch(matched){
+  S.transitioning=true;
+  snd('match');
+  if(S.cat.active)scareCat();
+  S.combo++;
+  S.maxCombo=Math.max(S.maxCombo,S.combo);
+  const base=30;
+  const bonus=S.combo>1?(S.combo-1)*15:0;
+  const points=base+bonus;
+  S.score+=points;
+  // show combo
+  if(S.combo>1){
+    const ci=$('combo-ind');
+    ci.textContent='COMBO x'+S.combo;
+    ci.classList.remove('show');
+    void ci.offsetWidth;
+    ci.classList.add('show');
+  }
+  // show score popup at first matched tile's current position
+  if(matched[0].el){
+    const tr=matched[0].el.getBoundingClientRect();
+    const br=board.getBoundingClientRect();
+    const pop=document.createElement('div');
+    pop.className='score-pop';
+    pop.textContent='+'+points;
+    pop.style.left=(tr.left-br.left+10)+'px';
+    pop.style.top=(tr.top-br.top-10)+'px';
+    board.appendChild(pop);
+    setTimeout(()=>pop.remove(),1000);
+  }
+  // animate match
+  matched.forEach(t=>{
+    t.state='cleared';
+    if(t.el){
+      t.el.classList.add('matching');
+      // particles at tile's current screen position (relative to board)
+      const tr2=t.el.getBoundingClientRect();
+      const br2=board.getBoundingClientRect();
+      const cx=tr2.left-br2.left, cy=tr2.top-br2.top;
+      const colors=[TILE_TYPES[t.type].bg,TILE_TYPES[t.type].bd,'#fff'];
+      for(let i=0;i<6;i++){
+        const p=document.createElement('div');
+        p.className='particle';
+        p.style.background=colors[i%colors.length];
+        p.style.left=(cx+15)+'px';
+        p.style.top=(cy+15)+'px';
+        board.appendChild(p);
+        const ang=Math.PI*2*i/6;
+        const dist=20+Math.random()*20;
+        p.style.transition='all .5s ease-out';
+        requestAnimationFrame(()=>{
+          p.style.transform=`translate(${Math.cos(ang)*dist}px,${Math.sin(ang)*dist}px)`;
+          p.style.opacity='0';
+        });
+        setTimeout(()=>p.remove(),500);
+      }
+    }
+  });
+  // remove from queue after animation
+  setTimeout(()=>{
+    matched.forEach(t=>{if(t.el)t.el.remove()});
+    // rebuild queue
+    S.queue=S.queue.filter(t=>t.state==='queue');
+    updateQueuePositions();
+    S.transitioning=false;
+    // check for chain matches
+    const nextMatch=checkMatch();
+    if(nextMatch){
+      handleMatch(nextMatch);
+    }else{
+      checkMood();
+      updateClickable();
+      renderUI();
+      checkWin();
+      checkLose();
+    }
+  },420);
+  updateMood('excited');
+  setTimeout(()=>{if(S.status==='playing')checkMood()},1500);
+}
+
+function checkMood(){
+  const ql=S.queue.length;
+  if(ql>=6)updateMood('panic');
+  else if(ql>=5)updateMood('nervous');
+  else updateMood('happy');
+}
+
+function checkWin(){
+  const remaining=S.tiles.filter(t=>t.state==='board').length;
+  if(remaining===0&&S.queue.length===0&&S.status==='playing'){
+    S.status='won';
+    stopTimer();
+    snd('win');
+    updateMood('win');
+    // win bonus
+    const elapsed=Math.floor((Date.now()-S.startT)/1000);
+    const timeBonus=Math.max(0,300-elapsed*2);
+    S.score+=timeBonus;
+    S.totalScore+=S.score;
+    collectToNest();
+    saveProgress();
+    if(S.cat.active)removeCat();
+    const cfg=LEVELS[Math.min(S.level,LEVELS.length-1)];
+    setTimeout(()=>{
+      $('win-score').textContent=S.score;
+      $('win-time').textContent=elapsed+'s';
+      $('win-combo').textContent=S.maxCombo;
+      if(S.level>=LEVELS.length-1){
+        $('clear-score').textContent=S.totalScore;
+        $('clear-modal').classList.remove('hidden');
+      }else{
+        $('win-sub').textContent=`咕咕的巢穴又多了一些宝贝 · ${cfg.name}`;
+        $('win-modal').classList.remove('hidden');
+      }
+    },800);
+  }
+}
+
+function checkLose(){
+  if(S.status!=='playing')return;
+  if(S.queue.length>=QSIZE){
+    // check if there's a match
+    const match=checkMatch();
+    if(!match){
+      S.status='lost';
+      stopTimer();
+      snd('lose');
+      updateMood('sad');
+      setTimeout(()=>$('lose-modal').classList.remove('hidden'),400);
+    }
+  }
+}
+
+// ==================== POWER-UPS ====================
+function doUndo(){
+  if(S.pu.undo<=0||S.history.length===0||S.transitioning)return;
+  snd('click');
+  S.pu.undo--;
+  const last=S.history.pop();
+  const tile=S.tiles.find(t=>t.id===last.tileId);
+  if(!tile)return;
+  // remove from queue
+  S.queue=S.queue.filter(t=>t!==tile);
+  S.queue.forEach((t,i)=>{t.queueIdx=i});
+  // restore to board
+  tile.state='board';
+  tile.queueIdx=-1;
+  S.remaining++;
+  if(tile.el){
+    // Move from slot back to board, clear all inline styles
+    board.appendChild(tile.el);
+    tile.el.style.left=tile.px+'px';
+    tile.el.style.top=tile.py+'px';
+    tile.el.style.width='';
+    tile.el.style.height='';
+    tile.el.style.fontSize='';
+    tile.el.style.zIndex=tile.layer+1;
+    tile.el.style.transition='';
+    tile.el.classList.remove('in-queue','matching');
+  }
+  S.combo=0;
+  updateQueuePositions();
+  updateClickable();
+  renderUI();
+  checkMood();
+}
+
+function doShuffle(){
+  if(S.pu.shuffle<=0||S.queue.length===0||S.transitioning)return;
+  snd('shuffle');
+  S.pu.shuffle--;
+  // shuffle queue
+  for(let i=S.queue.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [S.queue[i],S.queue[j]]=[S.queue[j],S.queue[i]];
+  }
+  S.combo=0;
+  updateQueuePositions();
+  // check for new matches
+  setTimeout(()=>{
+    const match=checkMatch();
+    if(match)handleMatch(match);
+    else{checkMood();renderUI()}
+  },350);
+}
+
+function doPeek(){
+  if(S.pu.peek<=0||S.transitioning)return;
+  snd('peek');
+  S.pu.peek--;
+  S.tiles.forEach(t=>{
+    if(t.state==='board'&&t.el){
+      t.el.classList.add('tile-peek');
+      t.el.classList.remove('blocked');
+    }
+  });
+  setTimeout(()=>{
+    S.tiles.forEach(t=>{
+      if(t.state==='board'&&t.el){
+        t.el.classList.remove('tile-peek');
+      }
+    });
+    updateClickable();
+    renderUI();
+  },3000);
+  renderUI();
+}
+
+// ==================== TIMER ====================
+function startTimer(){
+  S.startT=Date.now();
+  if(S.timerInt)clearInterval(S.timerInt);
+  S.timerInt=setInterval(()=>{
+    if(S.status!=='playing')return;
+    const e=Math.floor((Date.now()-S.startT)/1000);
+    const m=String(Math.floor(e/60)).padStart(2,'0');
+    const s=String(e%60).padStart(2,'0');
+    $('timer-text').textContent=m+':'+s;
+  },1000);
+}
+function stopTimer(){if(S.timerInt){clearInterval(S.timerInt);S.timerInt=null}}
+
+// ==================== WIND EFFECT ====================
+function startWind(){
+  const fx=$('wind-fx');
+  if(!fx)return;
+  const leaves=['🍃','🍂','📄','🪶'];
+  const spawn=()=>{
+    if(S.status!=='playing')return;
+    const leaf=document.createElement('div');
+    leaf.className='leaf';
+    leaf.textContent=leaves[Math.floor(Math.random()*leaves.length)];
+    leaf.style.top=Math.random()*200+'px';
+    leaf.style.left='-20px';
+    leaf.style.animationDuration=(2+Math.random()*2)+'s';
+    fx.appendChild(leaf);
+    setTimeout(()=>leaf.remove(),4000);
+  };
+  const windInt=setInterval(spawn,2000);
+  // stop when game ends
+  const check=()=>{if(S.status!=='playing'){clearInterval(windInt);return}setTimeout(check,1000)};
+  setTimeout(check,1000);
+}
+
+// ==================== CAT (大橘) ====================
+function maybeSpawnCat(){
+  const cfg=LEVELS[Math.min(S.level,LEVELS.length-1)];
+  if(!cfg.cat)return;
+  if(S.cat.active)return;
+  if(S.remaining<S.tiles.length*0.3)return;
+  if(S.tiles.length-S.remaining<6)return;
+  if(Math.random()>0.35)return;
+  spawnCat();
+}
+function spawnCat(){
+  S.cat.active=true;S.cat.scareCount=0;
+  snd('cat');
+  // pick 1-2 random board tiles to cover
+  const avail=S.tiles.filter(t=>t.state==='board');
+  if(avail.length===0)return;
+  const num=Math.min(avail.length,1+Math.floor(Math.random()*2));
+  S.cat.coveredTiles=[];
+  for(let i=0;i<num;i++){
+    const idx=Math.floor(Math.random()*avail.length);
+    const tile=avail.splice(idx,1)[0];
+    if(tile.el){
+      tile.el.classList.add('blocked');
+      tile.el.classList.remove('clickable');
+      // paw overlay
+      const paw=document.createElement('div');
+      paw.className='cat-paw';
+      paw.textContent='🐾';
+      paw.style.left=tile.px+'px';
+      paw.style.top=tile.py+'px';
+      board.appendChild(paw);
+      tile._paw=paw;
+      S.cat.coveredTiles.push(tile);
+    }
+  }
+  // show warning
+  const warn=$('cat-warn');
+  warn.classList.remove('hidden');
+  // show cat svg
+  if(S.cat.coveredTiles.length>0){
+    const t=S.cat.coveredTiles[0];
+    const catEl=document.createElement('div');
+    catEl.id='cat-overlay';
+    catEl.className='cat-in';
+    catEl.style.position='absolute';
+    catEl.style.left=(t.px-10)+'px';
+    catEl.style.top=(t.py-30)+'px';
+    catEl.innerHTML='<svg viewBox="0 0 60 50" width="50" height="42">'+
+      '<ellipse cx="30" cy="32" rx="20" ry="16" fill="#E8704A"/>'+
+      '<circle cx="30" cy="18" r="13" fill="#F0A030"/>'+
+      '<path d="M20 8 L16 2 L24 10 Z" fill="#E8704A"/>'+
+      '<path d="M40 8 L44 2 L36 10 Z" fill="#E8704A"/>'+
+      '<circle cx="25" cy="16" r="2.5" fill="#2C2C2A"/>'+
+      '<circle cx="35" cy="16" r="2.5" fill="#2C2C2A"/>'+
+      '<path d="M26 22 Q30 25 34 22" fill="none" stroke="#2C2C2A" stroke-width="1.5" stroke-linecap="round"/>'+
+      '<path d="M28 20 L32 20" stroke="#712B13" stroke-width="1"/>'+
+      '</svg>';
+    board.appendChild(catEl);
+    S.cat.catEl=catEl;
+  }
+  updateMood('panic');
+}
+function scareCat(){
+  if(!S.cat.active)return;
+  S.cat.scareCount++;
+  if(S.cat.scareCount>=2){
+    removeCat();
+  }
+}
+function removeCat(){
+  S.cat.active=false;
+  const warn=$('cat-warn');
+  warn.classList.add('hidden');
+  if(S.cat.catEl){
+    S.cat.catEl.classList.remove('cat-in');
+    S.cat.catEl.classList.add('cat-out');
+    setTimeout(()=>{if(S.cat.catEl){S.cat.catEl.remove();S.cat.catEl=null}},400);
+  }
+  // remove paws and unblock tiles
+  S.cat.coveredTiles.forEach(t=>{
+    if(t._paw){t._paw.remove();t._paw=null}
+  });
+  S.cat.coveredTiles=[];
+  snd('scare');
+  updateMood('excited');
+  setTimeout(()=>{if(S.status==='playing')checkMood()},1500);
+  updateClickable();
+}
+
+// ==================== NEST ====================
+function renderNest(){
+  const grid=$('nest-grid');
+  grid.innerHTML='';
+  $('nest-total-score').textContent='总分 '+S.totalScore;
+  TILE_TYPES.forEach((ty,i)=>{
+    const item=document.createElement('div');
+    const count=S.nest.items.filter(t=>t===i).length;
+    if(count>0){
+      item.className='nest-item';
+      item.style.background=ty.bg;
+      item.style.borderColor=ty.bd;
+      item.innerHTML='<span>'+ty.e+'</span>'+
+        '<span class="nest-item-name">'+ty.e+'</span>'+
+        '<span class="nest-item-count">x'+count+'</span>';
+    }else{
+      item.className='nest-item locked';
+      item.innerHTML='<span>🔒</span><span class="nest-item-name">未收集</span>';
+    }
+    grid.appendChild(item);
+  });
+}
+function showNest(){
+  startScreen.classList.add('hidden');
+  gameScreen.classList.add('hidden');
+  $('nest-screen').classList.remove('hidden');
+  renderNest();
+}
+function collectToNest(){
+  // collect a random tile type from this level
+  const cfg=LEVELS[Math.min(S.level,LEVELS.length-1)];
+  const usedTypes=[...new Set(S.tiles.map(t=>t.type))];
+  if(usedTypes.length>0){
+    const collected=usedTypes[Math.floor(Math.random()*usedTypes.length)];
+    S.nest.items.push(collected);
+    snd('nest');
+  }
+}
+
+// ==================== TUTORIAL ====================
+function showHint(text){
+  const h=$('tutorial-hint');
+  h.textContent=text;
+  h.classList.remove('hidden');
+}
+function hideHint(){
+  $('tutorial-hint').classList.add('hidden');
+}
+
+// ==================== SCREEN FLOW ====================
+function showStart(){
+  startScreen.classList.remove('hidden');
+  gameScreen.classList.add('hidden');
+  $('nest-screen').classList.add('hidden');
+  $('win-modal').classList.add('hidden');
+  $('lose-modal').classList.add('hidden');
+  $('clear-modal').classList.add('hidden');
+  hideHint();
+}
+function startGame(){
+  S.level=0;S.score=0;S.totalScore=0;S.nest.items=[];
+  saveProgress();
+  startScreen.classList.add('hidden');
+  gameScreen.classList.remove('hidden');
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>loadLevel(0))});
+}
+function nextLevel(){
+  $('win-modal').classList.add('hidden');
+  S.level++;
+  if(S.level>=LEVELS.length){
+    $('clear-modal').classList.remove('hidden');
+  }else{
+    loadLevel(S.level);
+    saveProgress();
+  }
+}
+function continueGame(){
+  const save=loadProgress();
+  if(!save){startGame();return}
+  S.level=save.level;
+  S.totalScore=save.totalScore;
+  S.nest.items=save.nestItems;
+  startScreen.classList.add('hidden');
+  gameScreen.classList.remove('hidden');
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>loadLevel(S.level))});
+}
+function resetGame(){
+  if(!confirm('确定要重新开始吗？\n\n所有关卡进度、总分、收集到的宝物都会被清空。'))return;
+  clearProgress();
+  S.level=0;S.score=0;S.totalScore=0;S.nest.items=[];
+  refreshStartUI();
+  snd('click');
+}
+function retryLevel(){
+  $('lose-modal').classList.add('hidden');
+  loadLevel(S.level);
+}
+function restartLevel(){
+  loadLevel(S.level);
+}
+
+// ==================== EVENTS ====================
+$('btn-start').addEventListener('click',()=>{snd('click');startGame()});
+$('btn-continue').addEventListener('click',()=>{snd('click');continueGame()});
+$('btn-reset').addEventListener('click',resetGame);
+$('btn-view-nest').addEventListener('click',()=>{snd('click');showNest()});
+$('btn-nest-back').addEventListener('click',()=>{snd('click');showStart()});
+$('btn-win-nest').addEventListener('click',()=>{snd('click');$('win-modal').classList.add('hidden');showNest()});
+$('btn-undo').addEventListener('click',doUndo);
+$('btn-shuffle').addEventListener('click',doShuffle);
+$('btn-peek').addEventListener('click',doPeek);
+$('btn-restart').addEventListener('click',()=>{snd('click');restartLevel()});
+$('btn-next').addEventListener('click',()=>{snd('click');nextLevel()});
+$('btn-home').addEventListener('click',()=>{snd('click');stopTimer();showStart()});
+$('btn-retry').addEventListener('click',()=>{snd('click');retryLevel()});
+$('btn-lose-home').addEventListener('click',()=>{snd('click');stopTimer();showStart()});
+$('btn-replay').addEventListener('click',()=>{snd('click');showStart()});
+
+// prevent context menu on long press
+document.addEventListener('contextmenu',e=>e.preventDefault());
+
+// ==================== INIT ====================
+// 根据本地存档刷新开始页按钮
+refreshStartUI();
+// 离开/隐藏页面时强制保存一次（防止手机后台被杀丢数据）
+window.addEventListener('pagehide',()=>saveProgress());
+window.addEventListener('beforeunload',()=>saveProgress());
+</script>
+</body>
+</html>

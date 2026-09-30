@@ -190,6 +190,28 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
 #daily-badge{display:inline-block;font-size:10px;background:rgba(255,255,255,.25);padding:1px 7px;border-radius:8px;margin-left:6px}
 .share-url-box{width:100%;font-size:11px;font-family:monospace;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--pg-l);color:var(--muted);margin-bottom:10px;word-break:break-all;text-align:left;max-height:60px;overflow-y:auto}
 #challenge-banner{position:absolute;top:0;left:0;right:0;background:linear-gradient(135deg,#1D9E75,#0F6E56);color:#fff;text-align:center;font-size:12px;font-weight:600;padding:5px 10px;z-index:95}
+
+/* ===== 排行榜 ===== */
+#leaderboard-modal .modal-card{width:330px;padding:18px}
+.lb-key{font-size:12px;color:var(--muted);text-align:center;margin-bottom:12px}
+.lb-name-row{display:flex;gap:8px;margin-bottom:12px}
+.lb-name-row input{flex:1;min-width:0;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;background:var(--card,#fff);color:var(--text);outline:none}
+.lb-name-row input:focus{border-color:var(--sky)}
+.lb-name-row button{padding:10px 14px;border-radius:10px;background:var(--sky);color:#fff;font-size:13px;font-weight:600;white-space:nowrap}
+.lb-list{max-height:300px;overflow-y:auto;margin-bottom:10px}
+.lb-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;font-size:14px;margin-bottom:6px;background:var(--pg-l)}
+.lb-row.lb-me{background:linear-gradient(135deg,#E6F1FB,#E1F5EE);border:1px solid #B5D4F4}
+.lb-rank{width:26px;font-weight:700;color:var(--muted);font-size:13px;text-align:center;flex-shrink:0}
+.lb-row:nth-child(1) .lb-rank{color:#C99A2E}
+.lb-row:nth-child(2) .lb-rank{color:#8B8680}
+.lb-row:nth-child(3) .lb-rank{color:#A9713F}
+.lb-nick{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lb-score{font-weight:700;color:var(--sky);font-variant-numeric:tabular-nums}
+.lb-time{font-size:11px;color:var(--muted);margin-left:6px;font-variant-numeric:tabular-nums}
+.lb-empty{text-align:center;font-size:13px;color:var(--muted);padding:24px 8px;line-height:1.7}
+.lb-status{font-size:12px;color:var(--muted);text-align:center;min-height:18px;margin-bottom:8px;line-height:1.5}
+.lb-status.err{color:#C0523A}
+.lb-status.ok{color:#1D9E75}
 </style>
 </head>
 <body data-page-node-id="PGm0w69CnrEOzC5BktcXR4">
@@ -224,6 +246,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
   <button class="btn-start hidden" id="btn-continue" style="margin-top:10px;background:linear-gradient(135deg,#F0A030,#E8704A);color:#fff;box-shadow:0 4px 16px rgba(240,160,48,.4);font-size:16px;padding:12px 36px">▶ 继续游戏</button>
   <button id="btn-daily" style="margin-top:10px">🎯 每日挑战<span id="daily-badge">今日</span></button>
   <button class="btn-nest" id="btn-view-nest" style="margin-top:12px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:14px;padding:8px 24px;border-radius:20px" data-page-node-id="SKEOWDeUNFLAEJaNAb0GDb">查看咕咕巢穴</button>
+  <button class="btn-nest" id="btn-leaderboard" style="margin-top:10px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:14px;padding:8px 24px;border-radius:20px">🏆 每日排行榜</button>
   <div id="save-hint" class="hidden" style="margin-top:10px;font-size:12px;opacity:.85">已自动保存进度 ✓</div>
   <button class="btn-link" id="btn-reset" style="margin-top:14px;background:none;border:none;color:#fff;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:12px;opacity:.75;padding:6px 12px">重新开始（清除存档）</button>
 </div>
@@ -362,14 +385,209 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
     <div class="report-btns">
       <button class="report-btn report-btn-ghost" id="btn-report-save">保存图片</button>
       <button class="report-btn report-btn-ghost" id="btn-report-share">挑战链接</button>
+      <button class="report-btn report-btn-ghost" id="btn-report-rank">排行榜</button>
       <button class="report-btn report-btn-primary" id="btn-report-close">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- LEADERBOARD MODAL -->
+<div id="leaderboard-modal" class="modal hidden">
+  <div class="modal-card">
+    <h2 style="margin-bottom:6px">🏆 排行榜</h2>
+    <div class="lb-key" id="lb-key">同一关卡 · 分数说话</div>
+    <div class="lb-name-row">
+      <input id="lb-nick" type="text" maxlength="12" placeholder="输入昵称上榜" autocomplete="off">
+      <button id="btn-lb-save">上榜</button>
+    </div>
+    <div class="lb-status" id="lb-status"></div>
+    <div class="lb-list" id="lb-list"></div>
+    <div class="report-btns">
+      <button class="report-btn report-btn-ghost" id="btn-lb-refresh">刷新</button>
+      <button class="report-btn report-btn-primary" id="btn-lb-close">关闭</button>
     </div>
   </div>
 </div>
 
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@tencent-ai/workbuddy-cloud-sdk@dev/lib/index.global.js"></script>
 <script>
+// ==================== CLOUD (WorkBuddy Cloud Service) ====================
+// endpoint / publishableKey 是平台下发值，勿改写为 location 推导或其它常量
+const CLOUD_CONFIG={
+  endpoint:'https://gugu-adventure.app.workbuddy.host',
+  publishableKey:'wbpk_TsNrpHVzwnacKzSbINMC2g_J0Kz4VRlsJJlngRXf7bqplN6rSH2vSWO',
+};
+let cloud=null;
+function getCloud(){
+  if(cloud)return cloud;
+  try{
+    if(!window.WorkBuddyCloud){console.warn('云端 SDK 未加载');return null}
+    cloud=window.WorkBuddyCloud.createWorkBuddyCloud({
+      endpoint:CLOUD_CONFIG.endpoint,
+      publishableKey:CLOUD_CONFIG.publishableKey,
+    });
+    return cloud;
+  }catch(e){console.warn('云端初始化失败:',e);return null}
+}
+
+// ==================== LEADERBOARD ====================
+const NICK_KEY='gugu_adventure_nick_v1';
+function getNickname(){
+  try{return localStorage.getItem(NICK_KEY)||''}catch(e){return ''}
+}
+function setNickname(n){
+  try{localStorage.setItem(NICK_KEY,n)}catch(e){}
+}
+function challengeKey(){
+  // 榜单分组：没有挑战种子时用当天日期做键（每日榜）
+  if(GAME_SEED!==null)return 'c'+GAME_SEED;
+  return 'd'+todaySeed();
+}
+function boardTitle(){
+  if(GAME_SEED!==null)return '🔥 好友挑战榜 · 种子 '+GAME_SEED;
+  return '📅 每日挑战榜 · '+new Date().toLocaleDateString('zh-CN');
+}
+async function fetchBoard(){
+  const sb=getCloud();
+  if(!sb)return {ok:false,msg:'云端未连接'};
+  try{
+    const key=challengeKey();
+    const {data,error}=await sb.database.from('daily_scores')
+      .select('nickname,score,elapsed,combo,won')
+      .eq('challenge_key',key)
+      .order('score',{ascending:false})
+      .order('elapsed',{ascending:true})
+      .limit(50);
+    if(error)throw error;
+    return {ok:true,rows:Array.isArray(data)?data:[]};
+  }catch(e){
+    return {ok:false,msg:describeErr(e)};
+  }
+}
+async function submitScore(payload){
+  const sb=getCloud();
+  if(!sb)throw new Error('云端未连接');
+  const key=challengeKey();
+  const nick=(payload.nickname||'').trim();
+  if(!nick)throw new Error('请先填昵称');
+  if(nick.length>12)throw new Error('昵称最多 12 个字');
+  const row={challenge_key:key,nickname:nick,score:payload.score|0,elapsed:payload.elapsed|0,combo:payload.combo|0,won:!!payload.won};
+  // 同一昵称同一榜只留最高分：先尝试插入，冲突则按条件更新
+  const {error:insErr}=await sb.database.from('daily_scores').insert(row);
+  if(insErr){
+    if(insErr.code==='23505'){
+      const {data:cur}=await sb.database.from('daily_scores')
+        .select('score').eq('challenge_key',key).eq('nickname',nick).maybeSingle();
+      if(cur&&cur.score>=row.score)return {updated:false,best:cur.score};
+      const {error:upErr}=await sb.database.from('daily_scores')
+        .update({score:row.score,elapsed:row.elapsed,combo:row.combo,won:row.won})
+        .eq('challenge_key',key).eq('nickname',nick).select();
+      if(upErr)throw upErr;
+      return {updated:true};
+    }
+    throw insErr;
+  }
+  return {updated:true};
+}
+function describeErr(e){
+  const msg=(e&&(e.message||e.error_description))||String(e||'');
+  if(/NetworkError|Failed to fetch|fetch failed|timeout/i.test(msg))return '网络不太好，点“刷新”再试一次';
+  if(/relation|does not exist|42P01/i.test(msg))return '榜单表还没就绪，稍后再试';
+  if(/permission|denied|42501/i.test(msg))return '暂无权限提交成绩';
+  return '加载失败：'+msg.slice(0,60);
+}
+function renderBoard(state){
+  const list=$('lb-list');
+  const st=$('lb-status');
+  if(!list)return;
+  list.innerHTML='';
+  if(state.loading){
+    st.textContent='正在加载榜单…';st.className='lb-status';
+    return;
+  }
+  if(!state.ok){
+    st.textContent=state.msg||'加载失败';st.className='lb-status err';
+    list.innerHTML='<div class="lb-empty">榜单暂时打不开<br>你的成绩仍保存在本机</div>';
+    return;
+  }
+  const rows=state.rows;
+  const me=getNickname();
+  if(!rows.length){
+    st.textContent='还没有人上榜，你是第一个';st.className='lb-status ok';
+    list.innerHTML='<div class="lb-empty">暂无成绩<br>玩一局每日挑战就能上榜</div>';
+    return;
+  }
+  st.textContent='共 '+rows.length+' 位挑战者';st.className='lb-status';
+  const html=rows.map((r,i)=>{
+    const isMe=me&&r.nickname===me;
+    const rank=i+1;
+    const medal=rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':String(rank);
+    const nick=escapeHtml(String(r.nickname||'匿名鸽子'));
+    const t=(r.elapsed!=null)?'<span class="lb-time">'+r.elapsed+'s</span>':'';
+    return '<div class="lb-row'+(isMe?' lb-me':'')+'">'
+      +'<div class="lb-rank">'+medal+'</div>'
+      +'<div class="lb-nick">'+nick+(isMe?' (我)':'')+'</div>'
+      +'<div class="lb-score">'+r.score+t+'</div>'
+      +'</div>';
+  }).join('');
+  list.innerHTML=html;
+}
+function escapeHtml(s){
+  return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+async function refreshBoard(){
+  renderBoard({loading:true});
+  const state=await fetchBoard();
+  renderBoard(state);
+}
+function openLeaderboard(){
+  const m=$('leaderboard-modal');
+  if(!m)return;
+  $('lb-key').textContent=boardTitle();
+  const nick=$('lb-nick');
+  if(nick&&!nick.value)nick.value=getNickname();
+  $('lb-status').textContent='';
+  $('lb-status').className='lb-status';
+  m.classList.remove('hidden');
+  refreshBoard();
+}
+async function saveMyScore(){
+  const nick=$('lb-nick').value.trim();
+  if(!nick){$('lb-status').textContent='请先填一个昵称';$('lb-status').className='lb-status err';return}
+  const r=S._lastReport;
+  if(!r){$('lb-status').textContent='先完成一局再来上榜';$('lb-status').className='lb-status err';return}
+  setNickname(nick);
+  const st=$('lb-status');
+  st.textContent='正在上传…';st.className='lb-status';
+  try{
+    const res=await submitScore({nickname:nick,score:r.score,elapsed:r.time,combo:r.combo,won:r.win});
+    st.textContent=res.updated?'已上榜 ✓':('你的最好成绩 '+res.best+' 分已在榜上');
+    st.className='lb-status ok';
+    await refreshBoard();
+  }catch(e){
+    st.textContent=describeErr(e);st.className='lb-status err';
+  }
+}
+// 战报页快捷上榜
+async function rankFromReport(){
+  const r=S._lastReport;
+  $('report-modal').classList.add('hidden');
+  openLeaderboard();
+  if(!r)return;
+  let nick=getNickname();
+  if(!nick){
+    nick=window.prompt('输入昵称上榜（最多 12 字）','');
+    if(!nick)return;
+    nick=nick.trim().slice(0,12);
+    if(!nick)return;
+    setNickname(nick);
+  }
+  $('lb-nick').value=nick;
+  await saveMyScore();
+}
+
 // ==================== CONFIG ====================
 const TILE_TYPES=[
   {e:'🪙',bg:'#FAEEDA',bd:'#FAC775',tx:'#633806'},
@@ -486,23 +704,38 @@ function flashSaveHint(){
 // 全局种子：挑战链接与每日挑战共用，保证同一 seed 生成同一关卡
 let GAME_SEED=null;
 let CHALLENGE_MODE=false;
+// 每局固定随机源：进入关卡时由 seedForLevel() 重建，替换掉牌局生成里的 Math.random
+let SEED_RNG=Math.random;
+let LEVEL_SALT=0;
 
 function makeRng(seed){
-  let s=seed>>>0;
+  let s=(seed>>>0)||1;
   return function(){
     s=(s*1664525+1013904223)>>>0;
     return s/4294967296;
   };
 }
 function todaySeed(){
+  // 用本地日期做种，保证同一天所有人都拿到同一套每日关卡
   const d=new Date();
   return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
 }
 function seedToLevel(seed,idx){
   // 用种子决定关卡索引，范围 0..LEVELS.length-1
-  const r=makeRng(seed);
-  return Math.floor(r()*LEVELS.length);
+  const r=makeRng((seed>>>0)+((idx||0)*7919));
+  return Math.floor(r()*LEVELS.length)%LEVELS.length;
 }
+function seedForLevel(seed,idx){
+  // 一局一个随机源：同一 seed + 同一关卡 → 完全一样的牌局
+  LEVEL_SALT=(idx|0)+1;
+  if(seed!==null&&seed!==undefined){
+    SEED_RNG=makeRng((seed>>>0)+LEVEL_SALT*104729);
+  }else{
+    SEED_RNG=Math.random;
+  }
+  return LEVEL_SALT;
+}
+function rnd(){return SEED_RNG()}
 function readUrlParams(){
   const p=new URLSearchParams(location.search);
   const c=p.get('challenge');
@@ -733,8 +966,8 @@ function genLayout(cfg){
     }
   });
   while(pos.length%3!==0)pos.pop();
-  // shuffle positions
-  for(let i=pos.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pos[i],pos[j]]=[pos[j],pos[i]]}
+  // shuffle positions（种子随机：挑战/每日模式下同 seed 结果一致）
+  for(let i=pos.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[pos[i],pos[j]]=[pos[j],pos[i]]}
   return pos;
 }
 
@@ -749,12 +982,14 @@ function genTypes(count,numTypes,poolSeed){
     const t=slot<numTypes?slot:(i%numTypes);
     arr.push(t,t,t);
   }
-  for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
+  for(let i=arr.length-1;i>0;i--){const j=Math.floor(rnd()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
   return arr;
 }
 
 function loadLevel(idx){
   const cfg=LEVELS[Math.min(idx,LEVELS.length-1)];
+  // 绑定本局随机源：挑战/每日模式下同一 seed 生成同一牌局
+  seedForLevel((CHALLENGE_MODE||GAME_SEED!==null)?GAME_SEED:null,idx);
   const positions=genLayout(cfg);
   const types=genTypes(positions.length,cfg.types,idx);
   S.tiles=positions.map((p,i)=>({
@@ -1232,7 +1467,7 @@ function maybeSpawnCat(){
   if(S.cat.active)return;
   if(S.remaining<S.tiles.length*0.3)return;
   if(S.tiles.length-S.remaining<6)return;
-  if(Math.random()>0.35)return;
+  if(rnd()>0.35)return;
   spawnCat();
 }
 function spawnCat(){
@@ -1241,10 +1476,10 @@ function spawnCat(){
   // pick 1-2 random board tiles to cover
   const avail=S.tiles.filter(t=>t.state==='board');
   if(avail.length===0)return;
-  const num=Math.min(avail.length,1+Math.floor(Math.random()*2));
+  const num=Math.min(avail.length,1+Math.floor(rnd()*2));
   S.cat.coveredTiles=[];
   for(let i=0;i<num;i++){
-    const idx=Math.floor(Math.random()*avail.length);
+    const idx=Math.floor(rnd()*avail.length);
     const tile=avail.splice(idx,1)[0];
     if(tile.el){
       tile.el.classList.add('blocked');
@@ -1609,10 +1844,18 @@ $('btn-lose-report').addEventListener('click',()=>{
 });
 $('btn-report-save').addEventListener('click',saveReportImage);
 $('btn-report-share').addEventListener('click',shareChallengeLink);
+$('btn-report-rank').addEventListener('click',()=>{snd('click');rankFromReport()});
 $('btn-report-close').addEventListener('click',()=>{
   snd('click');
   $('report-modal').classList.add('hidden');
 });
+
+// ===== 排行榜 =====
+$('btn-leaderboard').addEventListener('click',()=>{snd('click');openLeaderboard()});
+$('btn-lb-close').addEventListener('click',()=>{snd('click');$('leaderboard-modal').classList.add('hidden')});
+$('btn-lb-refresh').addEventListener('click',()=>{snd('click');refreshBoard()});
+$('btn-lb-save').addEventListener('click',()=>{snd('click');saveMyScore()});
+$('lb-nick').addEventListener('keydown',e=>{if(e.key==='Enter')saveMyScore()});
 
 // prevent context menu on long press
 document.addEventListener('contextmenu',e=>e.preventDefault());

@@ -28,3 +28,5 @@ Thumbs.db
 # 工作产物
 .workbuddy/
 .workbuddy-ai/
+# WorkBuddy app marker (internal)
+.wbapp_*.genie

@@ -143,9 +143,53 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
 .nest-item .nest-item-count{font-size:10px;font-weight:700;color:var(--amber-d)}
 #nest-screen .nest-actions{padding:16px;display:flex;gap:10px;justify-content:center}
 
+/* Nest tabs */
+.nest-tabs{display:flex;gap:0;padding:0 16px;margin-bottom:12px}
+.nest-tab{flex:1;padding:9px 0;text-align:center;font-size:13px;font-weight:600;cursor:pointer;background:var(--pg-l);color:var(--muted);border:1px solid var(--border);transition:all .15s}
+.nest-tab:first-child{border-radius:8px 0 0 8px}
+.nest-tab:last-child{border-radius:0 8px 8px 0;border-left:none}
+.nest-tab.active{background:var(--sky);color:#fff;border-color:var(--sky)}
+
+/* Nest decorate canvas */
+#nest-decorate{display:none;flex-direction:column;flex:1}
+#nest-decorate.on{display:flex}
+.deco-hint{padding:8px 16px;font-size:12px;color:var(--muted);text-align:center}
+#nest-canvas{position:relative;flex:1;min-height:280px;margin:0 16px 12px;border-radius:12px;overflow:hidden;border:1px solid var(--border);transition:background .3s}
+.deco-item{position:absolute;font-size:34px;cursor:grab;user-select:none;transition:transform .12s;line-height:1;z-index:2}
+.deco-item:active{cursor:grabbing;transform:scale(1.15);z-index:99}
+.deco-item.dragging{opacity:.75;transform:scale(1.2)}
+.deco-tray{padding:0 16px 12px}
+.deco-tray-title{font-size:12px;color:var(--muted);margin-bottom:8px;text-align:center}
+.deco-tray-items{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;min-height:56px}
+.deco-chip{flex-shrink:0;width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;border:1px solid var(--border);background:#fff;cursor:pointer;transition:transform .12s}
+.deco-chip:active{transform:scale(.9)}
+.deco-chip.used{opacity:.3;pointer-events:none}
+.deco-chip .deco-chip-badge{position:absolute;bottom:2px;right:4px;font-size:9px;font-weight:700;color:var(--amber-d)}
+.deco-themes{display:flex;gap:8px;justify-content:center;padding:0 16px 12px;flex-wrap:wrap}
+.deco-theme{width:44px;height:32px;border-radius:8px;border:2px solid var(--border);cursor:pointer;transition:transform .12s}
+.deco-theme:active{transform:scale(.92)}
+.deco-theme.active{border-color:var(--sky);box-shadow:0 0 0 2px rgba(91,170,232,.3)}
+.deco-empty{padding:40px 16px;text-align:center;font-size:13px;color:var(--muted);line-height:1.8}
+
 /* Tutorial hint */
 #tutorial-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(91,170,232,.9);color:#fff;font-size:12px;padding:6px 16px;border-radius:16px;z-index:70;animation:hintBob 1.5s ease-in-out infinite;pointer-events:none;max-width:280px;text-align:center}
 @keyframes hintBob{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-4px)}}
+
+/* ===== 战报卡片 / 每日挑战 ===== */
+#report-modal .modal-card{width:320px;padding:20px}
+#report-canvas{width:100%;border-radius:12px;display:block;margin-bottom:14px;box-shadow:0 2px 12px rgba(0,0,0,.1)}
+.report-hint{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.6}
+.report-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.report-btn{flex:1;min-width:88px;padding:10px 12px;border-radius:20px;font-size:13px;font-weight:600;transition:transform .1s}
+.report-btn:active{transform:scale(.95)}
+.report-btn-primary{background:var(--sky);color:#fff}
+.report-btn-ghost{background:var(--pg-l);color:var(--text);border:1px solid var(--border)}
+
+#btn-daily{width:100%;margin-top:10px;background:linear-gradient(135deg,#1D9E75,#0F6E56);color:#fff;font-size:15px;font-weight:600;padding:12px 24px;border-radius:22px}
+#btn-daily:active{transform:scale(.97)}
+#daily-badge{display:inline-block;font-size:10px;background:rgba(255,255,255,.25);padding:1px 7px;border-radius:8px;margin-left:6px}
+.share-url-box{width:100%;font-size:11px;font-family:monospace;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--pg-l);color:var(--muted);margin-bottom:10px;word-break:break-all;text-align:left;max-height:60px;overflow-y:auto}
+#challenge-banner{position:absolute;top:0;left:0;right:0;background:linear-gradient(135deg,#1D9E75,#0F6E56);color:#fff;text-align:center;font-size:12px;font-weight:600;padding:5px 10px;z-index:95}
 </style>
 </head>
 <body data-page-node-id="PGm0w69CnrEOzC5BktcXR4">
@@ -178,6 +222,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
   </div>
   <button class="btn-start" id="btn-start" data-page-node-id="QhCuvgFzb4zdF2bVGy6LUq">开始寻宝</button>
   <button class="btn-start hidden" id="btn-continue" style="margin-top:10px;background:linear-gradient(135deg,#F0A030,#E8704A);color:#fff;box-shadow:0 4px 16px rgba(240,160,48,.4);font-size:16px;padding:12px 36px">▶ 继续游戏</button>
+  <button id="btn-daily" style="margin-top:10px">🎯 每日挑战<span id="daily-badge">今日</span></button>
   <button class="btn-nest" id="btn-view-nest" style="margin-top:12px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;font-size:14px;padding:8px 24px;border-radius:20px" data-page-node-id="SKEOWDeUNFLAEJaNAb0GDb">查看咕咕巢穴</button>
   <div id="save-hint" class="hidden" style="margin-top:10px;font-size:12px;opacity:.85">已自动保存进度 ✓</div>
   <button class="btn-link" id="btn-reset" style="margin-top:14px;background:none;border:none;color:#fff;text-decoration:underline;cursor:pointer;font-family:inherit;font-size:12px;opacity:.75;padding:6px 12px">重新开始（清除存档）</button>
@@ -190,9 +235,25 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
     <span class="nest-score" id="nest-total-score" data-page-node-id="pXlSdUhVqo8Zcf6BwS9l1S">总分 0</span>
   </div>
   <div class="nest-intro" data-page-node-id="RfAsBCrxVDNxc7BVL8ie2M">咕咕在城市各处收集到的宝贝都存放在这里</div>
-  <div class="nest-grid" id="nest-grid" data-page-node-id="BfdsQx8uWGlowIiR5NCFLL"></div>
+  <div class="nest-tabs">
+    <div class="nest-tab active" id="tab-collect">收集册</div>
+    <div class="nest-tab" id="tab-decorate">装饰巢穴</div>
+  </div>
+  <div id="nest-collect-view">
+    <div class="nest-grid" id="nest-grid" data-page-node-id="BfdsQx8uWGlowIiR5NCFLL"></div>
+  </div>
+  <div id="nest-decorate">
+    <div class="deco-hint">拖动宝物调整位置，摆出你的专属巢穴</div>
+    <div id="nest-canvas"></div>
+    <div class="deco-tray">
+      <div class="deco-tray-title">点击添加宝物（同一个可多次摆放）</div>
+      <div class="deco-tray-items" id="deco-tray"></div>
+    </div>
+    <div class="deco-themes" id="deco-themes"></div>
+  </div>
   <div class="nest-actions" data-page-node-id="qg2KHr96in7hFVaVbiu40D">
     <button class="btn btn-secondary" id="btn-nest-back" data-page-node-id="JVmqMEefX5IFTXqEiBBMHK">返回首页</button>
+    <button class="btn btn-primary hidden" id="btn-deco-clear">清空摆放</button>
   </div>
 </div>
 
@@ -256,6 +317,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
     <div class="btn-row" data-page-node-id="w6U3LOC6gp5ZPznCWyNH6U">
       <button class="btn btn-secondary" id="btn-home" data-page-node-id="KF1X9YXYoLXC56MtBiRM4A">回首页</button>
       <button class="btn btn-secondary" id="btn-win-nest" data-page-node-id="c7RHuH9m1chH2TxICYhWSI">看巢穴</button>
+      <button class="btn btn-secondary" id="btn-win-report">看战报</button>
       <button class="btn btn-primary" id="btn-next" data-page-node-id="FFvlqHpMunlAoM12qlo3IW">下一关</button>
     </div>
   </div>
@@ -269,6 +331,7 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
     <p class="modal-sub" data-page-node-id="kACeJVUxs05rZ54KfEohfi">队列满了，咕咕还有办法的</p>
     <div class="btn-row" data-page-node-id="FnSUERlhVPbG0DG5Sb7hAU">
       <button class="btn btn-secondary" id="btn-lose-home" data-page-node-id="MMoPHHYwnwgkP3HG36wjVN">回首页</button>
+      <button class="btn btn-secondary" id="btn-lose-report">看战报</button>
       <button class="btn btn-primary" id="btn-retry" data-page-node-id="WfgahlH89H0oE1fCH1mOZi">再来一次</button>
     </div>
   </div>
@@ -289,6 +352,21 @@ button{font-family:inherit;cursor:pointer;border:none;outline:none}
   </div>
 </div>
 
+<!-- REPORT MODAL -->
+<div id="report-modal" class="modal hidden">
+  <div class="modal-card">
+    <h2 style="margin-bottom:12px">咕咕战报</h2>
+    <canvas id="report-canvas" width="600" height="800"></canvas>
+    <div class="report-hint" id="report-hint">长按图片保存，或点下方按钮复制挑战链接</div>
+    <div class="share-url-box hidden" id="share-url-box"></div>
+    <div class="report-btns">
+      <button class="report-btn report-btn-ghost" id="btn-report-save">保存图片</button>
+      <button class="report-btn report-btn-ghost" id="btn-report-share">挑战链接</button>
+      <button class="report-btn report-btn-primary" id="btn-report-close">关闭</button>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <script>
@@ -304,15 +382,35 @@ const TILE_TYPES=[
   {e:'💎',bg:'#E6F1FB',bd:'#B5D4F4',tx:'#0C447C'},
   {e:'🌿',bg:'#E1F5EE',bd:'#9FE1CB',tx:'#085041'},
   {e:'🧿',bg:'#FBEAF0',bd:'#F4C0D1',tx:'#72243E'},
+  {e:'🍞',bg:'#FAECE7',bd:'#F5C4B3',tx:'#712B13'},
+  {e:'🧶',bg:'#EEEDFE',bd:'#CECBF6',tx:'#3C3489'},
 ];
 const TS=40,TG=3,UNIT=TS+TG;
 const QSIZE=7;
 const LEVELS=[
-  {name:'中央公园',emoji:'🌳',layers:[{c:4,r:3,ox:0,oy:0},{c:3,r:2,ox:.5,oy:.5}],types:6,wind:false,cat:false},
-  {name:'屋顶天台',emoji:'🏙️',layers:[{c:5,r:3,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5},{c:3,r:1,ox:1,oy:1}],types:10,wind:true,cat:true},
-  {name:'地铁站台',emoji:'🚇',layers:[{c:5,r:4,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5},{c:3,r:3,ox:1,oy:1}],types:10,wind:true,cat:true},
-  {name:'樱花广场',emoji:'🌸',layers:[{c:5,r:4,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5},{c:3,r:2,ox:1,oy:1},{c:2,r:1,ox:1.5,oy:1.5}],types:10,wind:true,cat:true},
-  {name:'海边码头',emoji:'🏖️',layers:[{c:6,r:4,ox:0,oy:0},{c:5,r:3,ox:.5,oy:.5},{c:4,r:2,ox:1,oy:1},{c:3,r:1,ox:1.5,oy:1.5}],types:10,wind:true,cat:true},
+  // ===== 新手期 1-10：2-3 层，4-6 种宝物，无干扰 =====
+  {name:'中央公园',emoji:'🌳',layers:[{c:4,r:3,ox:0,oy:0},{c:3,r:2,ox:.5,oy:.5}],types:4,wind:false,cat:false},
+  {name:'公园长椅',emoji:'🪑',layers:[{c:4,r:3,ox:0,oy:0},{c:4,r:2,ox:0,oy:1}],types:4,wind:false,cat:false},
+  {name:'喷泉广场',emoji:'⛲',layers:[{c:5,r:3,ox:0,oy:0},{c:4,r:2,ox:.5,oy:.5}],types:5,wind:false,cat:false},
+  {name:'林荫小道',emoji:'🍃',layers:[{c:5,r:3,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5}],types:5,wind:false,cat:false},
+  {name:'鸽子聚集地',emoji:'🐦',layers:[{c:5,r:3,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5},{c:2,r:1,ox:1,oy:1}],types:5,wind:false,cat:false},
+  {name:'城市天桥',emoji:'🌉',layers:[{c:5,r:4,ox:0,oy:0},{c:4,r:2,ox:.5,oy:1}],types:6,wind:false,cat:false},
+  {name:'旧书店外',emoji:'📚',layers:[{c:5,r:4,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5}],types:6,wind:false,cat:false},
+  {name:'面包店后巷',emoji:'🥐',layers:[{c:5,r:4,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5},{c:3,r:1,ox:1,oy:1}],types:6,wind:false,cat:false},
+  {name:'午后阳台',emoji:'☀️',layers:[{c:6,r:3,ox:0,oy:0},{c:5,r:2,ox:.5,oy:.5}],types:6,wind:false,cat:false},
+  {name:'钟楼广场',emoji:'🕰️',layers:[{c:6,r:4,ox:0,oy:0},{c:5,r:2,ox:.5,oy:1}],types:6,wind:false,cat:false},
+
+  // ===== 上手期 11-20：3-4 层，6-8 种宝物，引入风向与大橘 =====
+  {name:'屋顶天台',emoji:'🏙️',layers:[{c:5,r:3,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5},{c:3,r:1,ox:1,oy:1}],types:7,wind:true,cat:false},
+  {name:'晾衣绳阵',emoji:'👕',layers:[{c:5,r:4,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5},{c:3,r:2,ox:1,oy:1}],types:7,wind:true,cat:false},
+  {name:'空调外机',emoji:'❄️',layers:[{c:6,r:3,ox:0,oy:0},{c:5,r:3,ox:.5,oy:.5},{c:3,r:2,ox:1,oy:1}],types:7,wind:true,cat:false},
+  {name:'夕阳天台',emoji:'🌇',layers:[{c:6,r:4,ox:0,oy:0},{c:4,r:3,ox:1,oy:.5},{c:3,r:2,ox:1.5,oy:1}],types:7,wind:true,cat:true},
+  {name:'地铁站台',emoji:'🚇',layers:[{c:5,r:4,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5},{c:3,r:3,ox:1,oy:1}],types:8,wind:true,cat:true},
+  {name:'车厢连接处',emoji:'🚃',layers:[{c:6,r:4,ox:0,oy:0},{c:5,r:3,ox:.5,oy:.5},{c:3,r:3,ox:1.5,oy:1}],types:8,wind:true,cat:true},
+  {name:'换乘通道',emoji:'🚶',layers:[{c:6,r:4,ox:0,oy:0},{c:5,r:4,ox:.5,oy:0},{c:4,r:2,ox:1,oy:1}],types:8,wind:true,cat:true},
+  {name:'樱花广场',emoji:'🌸',layers:[{c:5,r:4,ox:0,oy:0},{c:4,r:3,ox:.5,oy:.5},{c:3,r:2,ox:1,oy:1},{c:2,r:1,ox:1.5,oy:1.5}],types:8,wind:true,cat:true},
+  {name:'花瓣小径',emoji:'💮',layers:[{c:6,r:4,ox:0,oy:0},{c:5,r:3,ox:.5,oy:.5},{c:4,r:2,ox:1,oy:1}],types:8,wind:true,cat:true},
+  {name:'海边码头',emoji:'🏖️',layers:[{c:6,r:4,ox:0,oy:0},{c:5,r:3,ox:.5,oy:.5},{c:4,r:2,ox:1,oy:1},{c:3,r:1,ox:1.5,oy:1.5}],types:8,wind:true,cat:true},
 ];
 
 // ==================== STATE ====================
@@ -322,14 +420,21 @@ let S={
   startT:0,timerInt:null,mood:'happy',remaining:0,transitioning:false,
   boardOffsetX:0,boardOffsetY:0,
   cat:{active:false,coveredTiles:[],catEl:null,warnEl:null,scareCount:0},
-  nest:{items:[]},
+  nest:{items:[],deco:[],theme:'default'},
 };
 
 // ==================== SAVE/LOAD (localStorage) ====================
 const SAVE_KEY='gugu_treasure_save_v1';
 function saveProgress(){
   try{
-    const data={level:S.level,totalScore:S.totalScore,nestItems:S.nest.items,updatedAt:Date.now()};
+    const data={
+      level:S.level,
+      totalScore:S.totalScore,
+      nestItems:S.nest.items,
+      nestDeco:S.nest.deco,
+      nestTheme:S.nest.theme,
+      updatedAt:Date.now()
+    };
     localStorage.setItem(SAVE_KEY,JSON.stringify(data));
     flashSaveHint();
   }catch(e){console.warn('保存失败:',e)}
@@ -377,7 +482,213 @@ function flashSaveHint(){
   _saveHintTimer=setTimeout(()=>h.classList.add('hidden'),1500);
 }
 
-// ==================== DOM ====================
+// ==================== DAILY / SEED / CHALLENGE ====================
+// 全局种子：挑战链接与每日挑战共用，保证同一 seed 生成同一关卡
+let GAME_SEED=null;
+let CHALLENGE_MODE=false;
+
+function makeRng(seed){
+  let s=seed>>>0;
+  return function(){
+    s=(s*1664525+1013904223)>>>0;
+    return s/4294967296;
+  };
+}
+function todaySeed(){
+  const d=new Date();
+  return d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
+}
+function seedToLevel(seed,idx){
+  // 用种子决定关卡索引，范围 0..LEVELS.length-1
+  const r=makeRng(seed);
+  return Math.floor(r()*LEVELS.length);
+}
+function readUrlParams(){
+  const p=new URLSearchParams(location.search);
+  const c=p.get('challenge');
+  if(c){
+    const seed=parseInt(c,10);
+    if(!isNaN(seed)){
+      GAME_SEED=seed;
+      CHALLENGE_MODE=true;
+      return {seed};
+    }
+  }
+  const d=p.get('daily');
+  if(d){
+    GAME_SEED=todaySeed();
+    CHALLENGE_MODE=true;
+    return {daily:true};
+  }
+  return null;
+}
+function buildChallengeUrl(seed){
+  const url=new URL(location.href);
+  url.search='';
+  url.searchParams.set('challenge',seed);
+  return url.toString();
+}
+function startDaily(){
+  GAME_SEED=todaySeed();
+  CHALLENGE_MODE=true;
+  snd('click');
+  const idx=seedToLevel(GAME_SEED,0);
+  S.level=idx;
+  S.score=0;
+  S.totalScore=S.nest.items.length>0?S.totalScore:0;
+  startScreen.classList.add('hidden');
+  gameScreen.classList.remove('hidden');
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>loadLevel(idx))});
+}
+function refreshDailyBtn(){
+  const best=getDailyBest();
+  const badge=$('daily-badge');
+  if(!badge)return;
+  const today=new Date().toDateString();
+  if(best&&best.date===today){
+    badge.textContent='今日已完成';
+  }else{
+    badge.textContent='今日';
+  }
+}
+function getDailyBest(){
+  try{
+    const raw=localStorage.getItem('gugu_daily_best');
+    return raw?JSON.parse(raw):null;
+  }catch(e){return null}
+}
+function saveDailyBest(score,time){
+  try{
+    localStorage.setItem('gugu_daily_best',JSON.stringify({
+      date:new Date().toDateString(),
+      score,time,seed:todaySeed()
+    }));
+  }catch(e){}
+}
+
+// ==================== REPORT CARD ====================
+function drawReportCard(opts){
+  const cv=$('report-canvas');
+  if(!cv)return;
+  const ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  const {score,time,combo,level,win,rarest,daily}=opts;
+  // 背景渐变
+  const g=ctx.createLinearGradient(0,0,0,H);
+  if(win){
+    g.addColorStop(0,'#5BAAE8');g.addColorStop(1,'#3B7BC4');
+  }else{
+    g.addColorStop(0,'#8B8680');g.addColorStop(1,'#5F5E5A');
+  }
+  ctx.fillStyle=g;
+  ctx.fillRect(0,0,W,H);
+  // 顶部装饰圆
+  ctx.globalAlpha=.12;
+  ctx.fillStyle='#fff';
+  ctx.beginPath();ctx.arc(W-70,90,140,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(60,H-120,110,0,Math.PI*2);ctx.fill();
+  ctx.globalAlpha=1;
+  // 标题
+  ctx.fillStyle='#fff';
+  ctx.textAlign='center';
+  ctx.font='bold 52px -apple-system,sans-serif';
+  ctx.fillText(win?'寻宝成功！':'就差一点点',W/2,120);
+  ctx.font='26px -apple-system,sans-serif';
+  ctx.globalAlpha=.85;
+  const lvName=(level!==undefined&&LEVELS[level])?LEVELS[level].name:'';
+  ctx.fillText(win?('第 '+(level+1)+' 关 · '+lvName):'咕咕还在努力…',W/2,165);
+  ctx.globalAlpha=1;
+  // 咕咕表情
+  ctx.font='130px -apple-system,sans-serif';
+  ctx.fillText(win?'🐦':'😢',W/2,320);
+  // 白色信息卡
+  const cardY=390,cardH=250,cardX=50,cardW=W-100;
+  ctx.fillStyle='rgba(255,255,255,0.16)';
+  roundRect(ctx,cardX,cardY,cardW,cardH,24);
+  ctx.fill();
+  // 三项数据
+  const items=[
+    {v:String(score),l:'得分'},
+    {v:time+'s',l:'用时'},
+    {v:'x'+combo,l:'最高连消'},
+  ];
+  const colW=cardW/3;
+  items.forEach((it,i)=>{
+    const cx=cardX+colW*i+colW/2;
+    ctx.fillStyle='#fff';
+    ctx.font='bold 46px -apple-system,sans-serif';
+    ctx.fillText(it.v,cx,cardY+110);
+    ctx.font='22px -apple-system,sans-serif';
+    ctx.globalAlpha=.8;
+    ctx.fillText(it.l,cx,cardY+150);
+    ctx.globalAlpha=1;
+  });
+  // 稀有宝物
+  if(rarest!==undefined&&TILE_TYPES[rarest]){
+    ctx.font='30px -apple-system,sans-serif';
+    ctx.globalAlpha=.85;
+    ctx.fillText('本局最稀有：'+TILE_TYPES[rarest].e, W/2, cardY+215);
+    ctx.globalAlpha=1;
+  }
+  // 底部
+  ctx.font='24px -apple-system,sans-serif';
+  ctx.globalAlpha=.9;
+  ctx.fillText(daily?'每日挑战 · '+new Date().toLocaleDateString('zh-CN'):'咕咕寻宝', W/2, H-130);
+  ctx.globalAlpha=.7;
+  ctx.font='20px -apple-system,sans-serif';
+  ctx.fillText('来挑战我的成绩吧',W/2,H-90);
+  ctx.globalAlpha=1;
+}
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.arcTo(x+w,y,x+w,y+h,r);
+  ctx.arcTo(x+w,y+h,x,y+h,r);
+  ctx.arcTo(x,y+h,x,y,r);
+  ctx.arcTo(x,y,x+w,y,r);
+  ctx.closePath();
+}
+function showReport(opts){
+  drawReportCard(opts);
+  $('share-url-box').classList.add('hidden');
+  $('report-hint').classList.remove('hidden');
+  $('report-modal').classList.remove('hidden');
+}
+function saveReportImage(){
+  const cv=$('report-canvas');
+  try{
+    const url=cv.toDataURL('image/png');
+    const a=document.createElement('a');
+    a.href=url;
+    a.download='咕咕战报_'+Date.now()+'.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    snd('click');
+    $('report-hint').textContent='图片已开始下载';
+  }catch(e){
+    $('report-hint').textContent='保存失败，请长按图片手动保存';
+  }
+}
+async function shareChallengeLink(){
+  const seed=(GAME_SEED!==null)?GAME_SEED:todaySeed();
+  const link=buildChallengeUrl(seed);
+  const box=$('share-url-box');
+  box.textContent=link;
+  box.classList.remove('hidden');
+  $('report-hint').classList.add('hidden');
+  try{
+    await navigator.clipboard.writeText(link);
+    $('report-hint').textContent='链接已复制！发给朋友即可挑战同一关';
+    $('report-hint').classList.remove('hidden');
+    snd('click');
+  }catch(e){
+    $('report-hint').textContent='请手动复制上方链接';
+    $('report-hint').classList.remove('hidden');
+  }
+}
+
+
 const $=id=>document.getElementById(id);
 const board=$('board');
 const queueBar=$('queue-bar');
@@ -427,10 +738,17 @@ function genLayout(cfg){
   return pos;
 }
 
-function genTypes(count,numTypes){
+function genTypes(count,numTypes,poolSeed){
   const groups=Math.floor(count/3);
+  const total=TILE_TYPES.length;
+  // 按关卡轮换宝物池起点，避免每关都是同几种宝物
+  const start=((poolSeed||0)*3)%total;
   const arr=[];
-  for(let i=0;i<groups;i++){const t=i%numTypes;arr.push(t,t,t)}
+  for(let i=0;i<groups;i++){
+    const slot=(start+i)%total;
+    const t=slot<numTypes?slot:(i%numTypes);
+    arr.push(t,t,t);
+  }
   for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]]}
   return arr;
 }
@@ -438,7 +756,7 @@ function genTypes(count,numTypes){
 function loadLevel(idx){
   const cfg=LEVELS[Math.min(idx,LEVELS.length-1)];
   const positions=genLayout(cfg);
-  const types=genTypes(positions.length,cfg.types);
+  const types=genTypes(positions.length,cfg.types,idx);
   S.tiles=positions.map((p,i)=>({
     id:i,type:types[i],gx:p.gx,gy:p.gy,layer:p.layer,
     state:'board',queueIdx:-1,el:null
@@ -756,6 +1074,14 @@ function checkWin(){
     saveProgress();
     if(S.cat.active)removeCat();
     const cfg=LEVELS[Math.min(S.level,LEVELS.length-1)];
+    // 记录本局战报数据
+    const rarest=(()=>{
+      let best=-1;
+      S.tiles.forEach(t=>{if(t.type>best)best=t.type});
+      return best;
+    })();
+    if(CHALLENGE_MODE||GAME_SEED!==null)saveDailyBest(S.score,elapsed);
+    S._lastReport={score:S.score,time:elapsed,combo:S.maxCombo,level:S.level,win:true,rarest:rarest,daily:CHALLENGE_MODE};
     setTimeout(()=>{
       $('win-score').textContent=S.score;
       $('win-time').textContent=elapsed+'s';
@@ -781,6 +1107,8 @@ function checkLose(){
       stopTimer();
       snd('lose');
       updateMood('sad');
+      const elapsed=Math.floor((Date.now()-S.startT)/1000);
+      S._lastReport={score:S.score,time:elapsed,combo:S.maxCombo,level:S.level,win:false,rarest:undefined,daily:CHALLENGE_MODE};
       setTimeout(()=>$('lose-modal').classList.remove('hidden'),400);
     }
   }
@@ -987,6 +1315,16 @@ function removeCat(){
 }
 
 // ==================== NEST ====================
+const DECO_THEMES=[
+  {id:'default',name:'原木巢',bg:'linear-gradient(180deg,#F1EFE8 0%,#FAFAF8 100%)',swatch:'#F1EFE8'},
+  {id:'spring',name:'春日花园',bg:'linear-gradient(180deg,#EAF3DE 0%,#E1F5EE 100%)',swatch:'#C0DD97'},
+  {id:'sunset',name:'夕阳天台',bg:'linear-gradient(180deg,#FBEAF0 0%,#FAEEDA 100%)',swatch:'#F5C4B3'},
+  {id:'night',name:'夜色屋顶',bg:'linear-gradient(180deg,#CECBF6 0%,#E6F1FB 100%)',swatch:'#AFA9EC'},
+  {id:'sea',name:'海边码头',bg:'linear-gradient(180deg,#E6F1FB 0%,#E1F5EE 100%)',swatch:'#B5D4F4'},
+];
+let decoView='collect';
+let decoDrag=null;
+
 function renderNest(){
   const grid=$('nest-grid');
   grid.innerHTML='';
@@ -999,7 +1337,6 @@ function renderNest(){
       item.style.background=ty.bg;
       item.style.borderColor=ty.bd;
       item.innerHTML='<span>'+ty.e+'</span>'+
-        '<span class="nest-item-name">'+ty.e+'</span>'+
         '<span class="nest-item-count">x'+count+'</span>';
     }else{
       item.className='nest-item locked';
@@ -1008,15 +1345,145 @@ function renderNest(){
     grid.appendChild(item);
   });
 }
+function switchNestView(view){
+  decoView=view;
+  const isCollect=view==='collect';
+  $('tab-collect').classList.toggle('active',isCollect);
+  $('tab-decorate').classList.toggle('active',!isCollect);
+  $('nest-collect-view').classList.toggle('hidden',!isCollect);
+  $('nest-decorate').classList.toggle('on',!isCollect);
+  $('btn-deco-clear').classList.toggle('hidden',isCollect);
+  if(!isCollect)renderDecorate();
+}
+function renderDecorate(){
+  const canvas=$('nest-canvas');
+  const tray=$('deco-tray');
+  const themes=$('deco-themes');
+  // 主题
+  const cur=S.nest.theme||'default';
+  const th=DECO_THEMES.find(t=>t.id===cur)||DECO_THEMES[0];
+  canvas.style.background=th.bg;
+  themes.innerHTML='';
+  DECO_THEMES.forEach(t=>{
+    const d=document.createElement('div');
+    d.className='deco-theme'+(t.id===cur?' active':'');
+    d.style.background=t.swatch;
+    d.title=t.name;
+    d.addEventListener('click',()=>{
+      S.nest.theme=t.id;
+      saveProgress();
+      snd('click');
+      renderDecorate();
+    });
+    themes.appendChild(d);
+  });
+  // 已收集的宝物清单
+  const owned=[];
+  TILE_TYPES.forEach((ty,i)=>{
+    const c=S.nest.items.filter(t=>t===i).length;
+    if(c>0)owned.push({idx:i,count:c});
+  });
+  tray.innerHTML='';
+  if(owned.length===0){
+    canvas.innerHTML='<div class="deco-empty">还没有收集到宝物<br>先去玩几关再来装饰吧</div>';
+    return;
+  }
+  owned.forEach(o=>{
+    const chip=document.createElement('div');
+    chip.className='deco-chip';
+    chip.style.position='relative';
+    chip.textContent=TILE_TYPES[o.idx].e;
+    chip.style.background=TILE_TYPES[o.idx].bg;
+    chip.style.borderColor=TILE_TYPES[o.idx].bd;
+    const placed=S.nest.deco.filter(d=>d.type===o.idx).length;
+    const badge=document.createElement('span');
+    badge.className='deco-chip-badge';
+    badge.textContent=placed>0?('已放'+placed):('×'+o.count);
+    chip.appendChild(badge);
+    chip.addEventListener('click',()=>addDecoItem(o.idx));
+    tray.appendChild(chip);
+  });
+  // 画布上的摆放物
+  renderDecoItems();
+}
+function renderDecoItems(){
+  const canvas=$('nest-canvas');
+  canvas.innerHTML='';
+  S.nest.deco.forEach((d,i)=>{
+    const el=document.createElement('div');
+    el.className='deco-item';
+    el.textContent=TILE_TYPES[d.type].e;
+    el.style.left=d.x+'px';
+    el.style.top=d.y+'px';
+    el.dataset.idx=i;
+    el.addEventListener('pointerdown',startDrag);
+    canvas.appendChild(el);
+  });
+}
+function addDecoItem(typeIdx){
+  const canvas=$('nest-canvas');
+  const w=canvas.clientWidth||320;
+  const h=canvas.clientHeight||280;
+  S.nest.deco.push({
+    type:typeIdx,
+    x:Math.round(w/2-20+(Math.random()*60-30)),
+    y:Math.round(h/2-20+(Math.random()*60-30)),
+  });
+  saveProgress();
+  snd('pick');
+  renderDecorate();
+}
+function startDrag(e){
+  const el=e.currentTarget;
+  const canvas=$('nest-canvas');
+  const rect=canvas.getBoundingClientRect();
+  const idx=parseInt(el.dataset.idx,10);
+  decoDrag={
+    idx,
+    offsetX:e.clientX-rect.left-S.nest.deco[idx].x,
+    offsetY:e.clientY-rect.top-S.nest.deco[idx].y,
+    rect,
+    el,
+  };
+  el.classList.add('dragging');
+  el.setPointerCapture&&el.setPointerCapture(e.pointerId);
+  e.preventDefault();
+}
+function onDragMove(e){
+  if(!decoDrag)return;
+  const {rect,el,idx}=decoDrag;
+  let x=e.clientX-rect.left-decoDrag.offsetX;
+  let y=e.clientY-rect.top-decoDrag.offsetY;
+  const maxX=rect.width-40, maxY=rect.height-40;
+  x=Math.max(0,Math.min(maxX,x));
+  y=Math.max(0,Math.min(maxY,y));
+  S.nest.deco[idx].x=Math.round(x);
+  S.nest.deco[idx].y=Math.round(y);
+  el.style.left=x+'px';
+  el.style.top=y+'px';
+}
+function endDrag(){
+  if(!decoDrag)return;
+  decoDrag.el.classList.remove('dragging');
+  decoDrag=null;
+  saveProgress();
+}
+function clearDeco(){
+  if(S.nest.deco.length===0)return;
+  if(!confirm('确定清空巢穴里所有摆放的宝物吗？\n（收集册里的宝物不会丢失）'))return;
+  S.nest.deco=[];
+  saveProgress();
+  snd('click');
+  renderDecorate();
+}
 function showNest(){
   startScreen.classList.add('hidden');
   gameScreen.classList.add('hidden');
   $('nest-screen').classList.remove('hidden');
   renderNest();
+  switchNestView('collect');
 }
 function collectToNest(){
-  // collect a random tile type from this level
-  const cfg=LEVELS[Math.min(S.level,LEVELS.length-1)];
   const usedTypes=[...new Set(S.tiles.map(t=>t.type))];
   if(usedTypes.length>0){
     const collected=usedTypes[Math.floor(Math.random()*usedTypes.length)];
@@ -1043,10 +1510,25 @@ function showStart(){
   $('win-modal').classList.add('hidden');
   $('lose-modal').classList.add('hidden');
   $('clear-modal').classList.add('hidden');
+  $('report-modal').classList.add('hidden');
+  $('challenge-banner')&&$('challenge-banner').remove();
   hideHint();
+  refreshStartUI();
+  refreshDailyBtn();
+}
+function showChallengeBanner(text){
+  let b=$('challenge-banner');
+  if(!b){
+    b=document.createElement('div');
+    b.id='challenge-banner';
+    const gs=$('game-screen');
+    gs&&gs.appendChild(b);
+  }
+  b.textContent=text;
 }
 function startGame(){
-  S.level=0;S.score=0;S.totalScore=0;S.nest.items=[];
+  S.level=0;S.score=0;S.totalScore=0;
+  S.nest.items=[];S.nest.deco=[];S.nest.theme='default';
   saveProgress();
   startScreen.classList.add('hidden');
   gameScreen.classList.remove('hidden');
@@ -1068,6 +1550,8 @@ function continueGame(){
   S.level=save.level;
   S.totalScore=save.totalScore;
   S.nest.items=save.nestItems;
+  S.nest.deco=Array.isArray(save.nestDeco)?save.nestDeco:[];
+  S.nest.theme=save.nestTheme||'default';
   startScreen.classList.add('hidden');
   gameScreen.classList.remove('hidden');
   requestAnimationFrame(()=>{requestAnimationFrame(()=>loadLevel(S.level))});
@@ -1075,7 +1559,8 @@ function continueGame(){
 function resetGame(){
   if(!confirm('确定要重新开始吗？\n\n所有关卡进度、总分、收集到的宝物都会被清空。'))return;
   clearProgress();
-  S.level=0;S.score=0;S.totalScore=0;S.nest.items=[];
+  S.level=0;S.score=0;S.totalScore=0;
+  S.nest.items=[];S.nest.deco=[];S.nest.theme='default';
   refreshStartUI();
   snd('click');
 }
@@ -1093,6 +1578,12 @@ $('btn-continue').addEventListener('click',()=>{snd('click');continueGame()});
 $('btn-reset').addEventListener('click',resetGame);
 $('btn-view-nest').addEventListener('click',()=>{snd('click');showNest()});
 $('btn-nest-back').addEventListener('click',()=>{snd('click');showStart()});
+$('tab-collect').addEventListener('click',()=>{snd('click');switchNestView('collect')});
+$('tab-decorate').addEventListener('click',()=>{snd('click');switchNestView('decorate')});
+$('btn-deco-clear').addEventListener('click',clearDeco);
+document.addEventListener('pointermove',onDragMove);
+document.addEventListener('pointerup',endDrag);
+document.addEventListener('pointercancel',endDrag);
 $('btn-win-nest').addEventListener('click',()=>{snd('click');$('win-modal').classList.add('hidden');showNest()});
 $('btn-undo').addEventListener('click',doUndo);
 $('btn-shuffle').addEventListener('click',doShuffle);
@@ -1104,12 +1595,48 @@ $('btn-retry').addEventListener('click',()=>{snd('click');retryLevel()});
 $('btn-lose-home').addEventListener('click',()=>{snd('click');stopTimer();showStart()});
 $('btn-replay').addEventListener('click',()=>{snd('click');showStart()});
 
+// ===== 每日挑战 / 战报 =====
+$('btn-daily').addEventListener('click',startDaily);
+$('btn-win-report').addEventListener('click',()=>{
+  snd('click');
+  $('win-modal').classList.add('hidden');
+  showReport(S._lastReport||{score:S.score,time:0,combo:S.maxCombo,level:S.level,win:true,daily:CHALLENGE_MODE});
+});
+$('btn-lose-report').addEventListener('click',()=>{
+  snd('click');
+  $('lose-modal').classList.add('hidden');
+  showReport(S._lastReport||{score:S.score,time:0,combo:S.maxCombo,level:S.level,win:false,daily:CHALLENGE_MODE});
+});
+$('btn-report-save').addEventListener('click',saveReportImage);
+$('btn-report-share').addEventListener('click',shareChallengeLink);
+$('btn-report-close').addEventListener('click',()=>{
+  snd('click');
+  $('report-modal').classList.add('hidden');
+});
+
 // prevent context menu on long press
 document.addEventListener('contextmenu',e=>e.preventDefault());
 
 // ==================== INIT ====================
 // 根据本地存档刷新开始页按钮
 refreshStartUI();
+refreshDailyBtn();
+// 检测 URL 参数：挑战链接 / 每日挑战
+const urlCh=readUrlParams();
+if(urlCh){
+  setTimeout(()=>{
+    if(urlCh.seed!==undefined){
+      showChallengeBanner('🔥 好友挑战 · 同一关卡比高分');
+    }else{
+      showChallengeBanner('📅 每日挑战 · '+new Date().toLocaleDateString('zh-CN'));
+    }
+    // 自动进入挑战关卡
+    S.level=seedToLevel(GAME_SEED,0);
+    startScreen.classList.add('hidden');
+    gameScreen.classList.remove('hidden');
+    requestAnimationFrame(()=>{requestAnimationFrame(()=>loadLevel(S.level))});
+  },300);
+}
 // 离开/隐藏页面时强制保存一次（防止手机后台被杀丢数据）
 window.addEventListener('pagehide',()=>saveProgress());
 window.addEventListener('beforeunload',()=>saveProgress());

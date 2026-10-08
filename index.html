@@ -2,8 +2,19 @@
 <html lang="zh-CN" data-page-node-id="LVYpvXBdLCDVWwo7hB3PVT">
 <head data-page-node-id="iSpOTT56DtDEKDwyWyiqs1">
 <meta charset="UTF-8" data-page-node-id="VolDVCvYxPMq4534FaDJ3f">
-<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no" data-page-node-id="RVg0ZSTEw7Kzn6MJJQC0Mu">
-<title>咕咕寻宝 · 原型</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no,viewport-fit=cover" data-page-node-id="RVg0ZSTEw7Kzn6MJJQC0Mu">
+<title>咕咕冒险记</title>
+
+<!-- ===== PWA：装到手机桌面像 App 一样 ===== -->
+<meta name="description" content="城市鸽子收集宝物的三消解压小游戏">
+<meta name="theme-color" content="#5BAAE8">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="咕咕冒险记">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;user-select:none}
@@ -1883,6 +1894,32 @@ if(urlCh){
 // 离开/隐藏页面时强制保存一次（防止手机后台被杀丢数据）
 window.addEventListener('pagehide',()=>saveProgress());
 window.addEventListener('beforeunload',()=>saveProgress());
+
+// ==================== PWA ====================
+// 注册 Service Worker：添加到主屏幕后可离线打开
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('./sw.js').catch(e=>console.warn('SW 注册失败:',e));
+  });
+}
+// iOS「添加到主屏幕」的安装引导（iOS Safari 没有自动安装提示）
+(function installHint(){
+  try{
+    const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+    const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+    const KEY='gugu_pwa_hint_dismissed';
+    if(standalone||!isIOS||localStorage.getItem(KEY))return;
+    const bar=document.createElement('div');
+    bar.style.cssText='position:fixed;left:12px;right:12px;bottom:calc(16px + env(safe-area-inset-bottom));z-index:999;background:#2C2C2A;color:#fff;border-radius:14px;padding:12px 14px;font-size:13px;line-height:1.7;display:flex;align-items:center;gap:10px;box-shadow:0 6px 24px rgba(0,0,0,.25)';
+    bar.innerHTML='<span style="font-size:20px">📲</span><span style="flex:1">把这个游戏装到桌面：点浏览器底部的<b>分享按钮</b>，选「<b>添加到主屏幕</b>」</span><span id="pwa-hint-close" style="padding:6px 10px;opacity:.7;font-size:16px">✕</span>';
+    document.body.appendChild(bar);
+    bar.querySelector('#pwa-hint-close').addEventListener('click',()=>{
+      bar.remove();
+      try{localStorage.setItem(KEY,'1')}catch(e){}
+    });
+    setTimeout(()=>{if(bar.parentNode){bar.remove();try{localStorage.setItem(KEY,'1')}catch(e){}}},15000);
+  }catch(e){}
+})();
 </script>
 </body>
 </html>
